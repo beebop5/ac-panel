@@ -1,9 +1,12 @@
 {
   "name": "Air Conditioner Panel",
-  "content_in_root": false,
-  "filename": "ac_panel",
+  "content_in_root": true,
+  "filename": "ac-panel",
   "homeassistant": "2023.1.0",
   "render_readme": true,
   "domains": ["climate"],
-  "iot_class": "Local Push"
+  "iot_class": "Local Push",
+  "hacs": "1.6.0",
+  "requirements": [],
+  "dependencies": []
 }
