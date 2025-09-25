@@ -480,6 +480,8 @@ class AcPanelCard extends HTMLElement {
   setConfig(config) {
     this.config = config || {};
     // Don't throw error here - let the render method handle missing entity
+    console.log('AC Panel Card: Configuration received', this.config);
+    this._render();
   }
 
   getCardSize() {
@@ -765,6 +767,7 @@ class AcPanelCardEditor extends HTMLElement {
   }
 
   _render() {
+    console.log('AC Panel Editor: Rendering with config', this.config);
     if (!this.hass) {
       this.innerHTML = html`<div>Loading...</div>`;
       return;
@@ -923,6 +926,9 @@ class AcPanelCardEditor extends HTMLElement {
     } else if (target.type === 'checkbox') {
       this.config[target.id] = target.checked;
     }
+
+    // Debug logging
+    console.log('AC Panel Editor: Configuration changed', this.config);
 
     const event = new CustomEvent('config-changed', {
       detail: { config: this.config },
