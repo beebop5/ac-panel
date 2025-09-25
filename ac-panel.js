@@ -1,5 +1,5 @@
 // Air Conditioner Panel for Home Assistant
-// Custom card component for controlling air conditioners
+// Custom Lovelace card for controlling air conditioners
 
 const LitElement = customElements.get('home-assistant')?.__proto__?.constructor || Object.getPrototypeOf(customElements.get('home-assistant'));
 const html = LitElement?.html || (() => '');
@@ -401,30 +401,18 @@ class AcPanel extends LitElement {
   }
 }
 
-// Card Wrapper Component
+// Lovelace Card Wrapper - This is what appears in the dashboard
 class AcPanelCard extends LitElement {
   static get properties() {
     return {
       hass: { type: Object },
-      entity: { type: String },
-      name: { type: String },
-      theme: { type: String },
-      hide_temperature: { type: Boolean },
-      hide_mode: { type: Boolean },
-      hide_fan_speed: { type: Boolean },
-      hide_swing: { type: Boolean },
-      modes: { type: Array },
-      fan_speeds: { type: Array },
-      swing_modes: { type: Array }
+      config: { type: Object }
     };
   }
 
   constructor() {
     super();
-    this.hide_temperature = false;
-    this.hide_mode = false;
-    this.hide_fan_speed = false;
-    this.hide_swing = false;
+    this.config = {};
   }
 
   static get styles() {
@@ -442,17 +430,7 @@ class AcPanelCard extends LitElement {
     if (!config.entity) {
       throw new Error('You need to define an entity');
     }
-
-    this.entity = config.entity;
-    this.name = config.name;
-    this.theme = config.theme;
-    this.hide_temperature = config.hide_temperature || false;
-    this.hide_mode = config.hide_mode || false;
-    this.hide_fan_speed = config.hide_fan_speed || false;
-    this.hide_swing = config.hide_swing || false;
-    this.modes = config.modes;
-    this.fan_speeds = config.fan_speeds;
-    this.swing_modes = config.swing_modes;
+    this.config = config;
   }
 
   getCardSize() {
@@ -460,19 +438,19 @@ class AcPanelCard extends LitElement {
   }
 
   render() {
-    if (!this.hass || !this.entity) {
+    if (!this.hass || !this.config.entity) {
       return html`
         <ha-card>
-          <div class="error">Entity not found: ${this.entity}</div>
+          <div class="error">Entity not found: ${this.config.entity}</div>
         </ha-card>
       `;
     }
 
-    const state = this.hass.states[this.entity];
+    const state = this.hass.states[this.config.entity];
     if (!state) {
       return html`
         <ha-card>
-          <div class="error">Entity not found: ${this.entity}</div>
+          <div class="error">Entity not found: ${this.config.entity}</div>
         </ha-card>
       `;
     }
@@ -481,16 +459,16 @@ class AcPanelCard extends LitElement {
       <ha-card>
         <ac-panel
           .hass=${this.hass}
-          .entity=${this.entity}
-          .name=${this.name}
-          .theme=${this.theme}
-          .hide_temperature=${this.hide_temperature}
-          .hide_mode=${this.hide_mode}
-          .hide_fan_speed=${this.hide_fan_speed}
-          .hide_swing=${this.hide_swing}
-          .modes=${this.modes}
-          .fan_speeds=${this.fan_speeds}
-          .swing_modes=${this.swing_modes}
+          .entity=${this.config.entity}
+          .name=${this.config.name}
+          .theme=${this.config.theme}
+          .hide_temperature=${this.config.hide_temperature}
+          .hide_mode=${this.config.hide_mode}
+          .hide_fan_speed=${this.config.hide_fan_speed}
+          .hide_swing=${this.config.hide_swing}
+          .modes=${this.config.modes}
+          .fan_speeds=${this.config.fan_speeds}
+          .swing_modes=${this.config.swing_modes}
         ></ac-panel>
       </ha-card>
     `;
@@ -501,53 +479,41 @@ class AcPanelCard extends LitElement {
   }
 }
 
-// Card Editor Component
+// Card Editor for Lovelace UI
 class AcPanelCardEditor extends LitElement {
   static get properties() {
     return {
       hass: { type: Object },
-      _config: { type: Object }
+      config: { type: Object }
     };
   }
 
   setConfig(config) {
-    this._config = config;
+    this.config = config || {};
   }
 
   get _entity() {
-    return this._config?.entity || '';
+    return this.config?.entity || '';
   }
 
   get _name() {
-    return this._config?.name || '';
+    return this.config?.name || '';
   }
 
   get _hide_temperature() {
-    return this._config?.hide_temperature || false;
+    return this.config?.hide_temperature || false;
   }
 
   get _hide_mode() {
-    return this._config?.hide_mode || false;
+    return this.config?.hide_mode || false;
   }
 
   get _hide_fan_speed() {
-    return this._config?.hide_fan_speed || false;
+    return this.config?.hide_fan_speed || false;
   }
 
   get _hide_swing() {
-    return this._config?.hide_swing || false;
-  }
-
-  get _modes() {
-    return this._config?.modes || [];
-  }
-
-  get _fan_speeds() {
-    return this._config?.fan_speeds || [];
-  }
-
-  get _swing_modes() {
-    return this._config?.swing_modes || [];
+    return this.config?.hide_swing || false;
   }
 
   static get styles() {
@@ -666,27 +632,27 @@ class AcPanelCardEditor extends LitElement {
   }
 
   _valueChanged(ev) {
-    if (!this._config) {
-      this._config = {};
+    if (!this.config) {
+      this.config = {};
     }
 
     const target = ev.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
 
     if (target.id === 'entity') {
-      this._config.entity = value;
+      this.config.entity = value;
     } else if (target.id === 'name') {
-      this._config.name = value;
+      this.config.name = value;
     } else if (target.type === 'checkbox') {
       if (target.checked) {
-        this._config[target.id] = true;
+        this.config[target.id] = true;
       } else {
-        delete this._config[target.id];
+        delete this.config[target.id];
       }
     }
 
     const event = new CustomEvent('config-changed', {
-      detail: { config: this._config },
+      detail: { config: this.config },
       bubbles: true,
       composed: true,
     });
@@ -698,3 +664,11 @@ class AcPanelCardEditor extends LitElement {
 customElements.define('ac-panel', AcPanel);
 customElements.define('ac-panel-card', AcPanelCard);
 customElements.define('ac-panel-card-editor', AcPanelCardEditor);
+
+// Register with Lovelace
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: 'ac-panel-card',
+  name: 'Air Conditioner Panel',
+  description: 'A custom card for controlling air conditioners with fan speeds, swing positions, and modes'
+});
