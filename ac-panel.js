@@ -1,26 +1,44 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { HomeAssistant } from 'custom-card-helpers';
+// Air Conditioner Panel for Home Assistant
+// Custom card component for controlling air conditioners
 
-@customElement('ac-panel')
-export class AcPanel extends LitElement {
-  @property({ attribute: false }) public hass!: HomeAssistant;
-  @property({ type: String }) public entity!: string;
-  @property({ type: String }) public name?: string;
-  @property({ type: String }) public theme?: string;
-  @property({ type: Boolean }) public hide_temperature = false;
-  @property({ type: Boolean }) public hide_mode = false;
-  @property({ type: Boolean }) public hide_fan_speed = false;
-  @property({ type: Boolean }) public hide_swing = false;
-  @property({ type: Array }) public modes?: string[];
-  @property({ type: Array }) public fan_speeds?: string[];
-  @property({ type: Array }) public swing_modes?: string[];
+const LitElement = customElements.get('home-assistant')?.__proto__?.constructor || Object.getPrototypeOf(customElements.get('home-assistant'));
+const html = LitElement?.html || (() => '');
+const css = LitElement?.css || (() => '');
 
-  @state() private _temperature = 22;
-  @state() private _currentMode = 'cool';
-  @state() private _currentFanSpeed = 'auto';
-  @state() private _currentSwing = 'off';
-  @state() private _isOn = false;
+class AcPanel extends LitElement {
+  static get properties() {
+    return {
+      hass: { type: Object },
+      entity: { type: String },
+      name: { type: String },
+      theme: { type: String },
+      hide_temperature: { type: Boolean },
+      hide_mode: { type: Boolean },
+      hide_fan_speed: { type: Boolean },
+      hide_swing: { type: Boolean },
+      modes: { type: Array },
+      fan_speeds: { type: Array },
+      swing_modes: { type: Array },
+      _temperature: { type: Number, state: true },
+      _currentMode: { type: String, state: true },
+      _currentFanSpeed: { type: String, state: true },
+      _currentSwing: { type: String, state: true },
+      _isOn: { type: Boolean, state: true }
+    };
+  }
+
+  constructor() {
+    super();
+    this._temperature = 22;
+    this._currentMode = 'cool';
+    this._currentFanSpeed = 'auto';
+    this._currentSwing = 'off';
+    this._isOn = false;
+    this.hide_temperature = false;
+    this.hide_mode = false;
+    this.hide_fan_speed = false;
+    this.hide_swing = false;
+  }
 
   static get styles() {
     return css`
@@ -238,7 +256,7 @@ export class AcPanel extends LitElement {
     }
   }
 
-  private _updateState() {
+  _updateState() {
     if (!this.hass || !this.entity) return;
 
     const state = this.hass.states[this.entity];
@@ -251,30 +269,30 @@ export class AcPanel extends LitElement {
     this._currentSwing = state.attributes.swing_mode || 'off';
   }
 
-  private _callService(service, data = {}) {
+  _callService(service, data = {}) {
     this.hass.callService('climate', service, {
       entity_id: this.entity,
       ...data
     });
   }
 
-  private _togglePower() {
+  _togglePower() {
     this._callService(this._isOn ? 'turn_off' : 'turn_on');
   }
 
-  private _setTemperature(temp) {
+  _setTemperature(temp) {
     this._callService('set_temperature', { temperature: temp });
   }
 
-  private _setMode(mode) {
+  _setMode(mode) {
     this._callService('set_hvac_mode', { hvac_mode: mode });
   }
 
-  private _setFanSpeed(speed) {
+  _setFanSpeed(speed) {
     this._callService('set_fan_mode', { fan_mode: speed });
   }
 
-  private _setSwing(swing) {
+  _setSwing(swing) {
     this._callService('set_swing_mode', { swing_mode: swing });
   }
 
@@ -382,8 +400,4 @@ export class AcPanel extends LitElement {
   }
 }
 
-declare global {
-  interface HTMLElementTagNameMap {
-    'ac-panel': AcPanel;
-  }
-}
+customElements.define('ac-panel', AcPanel);

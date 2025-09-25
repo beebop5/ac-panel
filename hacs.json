@@ -8,5 +8,6 @@
   "iot_class": "Local Push",
   "hacs": "1.6.0",
   "requirements": [],
-  "dependencies": []
+  "dependencies": [],
+  "category": "frontend"
 }

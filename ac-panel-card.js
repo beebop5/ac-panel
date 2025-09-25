@@ -1,20 +1,34 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { HomeAssistant } from 'custom-card-helpers';
+// Air Conditioner Panel Card for Home Assistant
+// Custom card wrapper for the AC panel component
 
-@customElement('ac-panel-card')
-export class AcPanelCard extends LitElement {
-  @property({ attribute: false }) public hass!: HomeAssistant;
-  @property({ type: String }) public entity!: string;
-  @property({ type: String }) public name?: string;
-  @property({ type: String }) public theme?: string;
-  @property({ type: Boolean }) public hide_temperature = false;
-  @property({ type: Boolean }) public hide_mode = false;
-  @property({ type: Boolean }) public hide_fan_speed = false;
-  @property({ type: Boolean }) public hide_swing = false;
-  @property({ type: Array }) public modes?: string[];
-  @property({ type: Array }) public fan_speeds?: string[];
-  @property({ type: Array }) public swing_modes?: string[];
+const LitElement = customElements.get('home-assistant')?.__proto__?.constructor || Object.getPrototypeOf(customElements.get('home-assistant'));
+const html = LitElement?.html || (() => '');
+const css = LitElement?.css || (() => '');
+
+class AcPanelCard extends LitElement {
+  static get properties() {
+    return {
+      hass: { type: Object },
+      entity: { type: String },
+      name: { type: String },
+      theme: { type: String },
+      hide_temperature: { type: Boolean },
+      hide_mode: { type: Boolean },
+      hide_fan_speed: { type: Boolean },
+      hide_swing: { type: Boolean },
+      modes: { type: Array },
+      fan_speeds: { type: Array },
+      swing_modes: { type: Array }
+    };
+  }
+
+  constructor() {
+    super();
+    this.hide_temperature = false;
+    this.hide_mode = false;
+    this.hide_fan_speed = false;
+    this.hide_swing = false;
+  }
 
   static get styles() {
     return css`
@@ -90,10 +104,13 @@ export class AcPanelCard extends LitElement {
   }
 }
 
-@customElement('ac-panel-card-editor')
-export class AcPanelCardEditor extends LitElement {
-  @property({ attribute: false }) public hass?: HomeAssistant;
-  @property({ attribute: false }) private _config?: any;
+class AcPanelCardEditor extends LitElement {
+  static get properties() {
+    return {
+      hass: { type: Object },
+      _config: { type: Object }
+    };
+  }
 
   setConfig(config) {
     this._config = config;
@@ -279,9 +296,5 @@ export class AcPanelCardEditor extends LitElement {
   }
 }
 
-declare global {
-  interface HTMLElementTagNameMap {
-    'ac-panel-card': AcPanelCard;
-    'ac-panel-card-editor': AcPanelCardEditor;
-  }
-}
+customElements.define('ac-panel-card', AcPanelCard);
+customElements.define('ac-panel-card-editor', AcPanelCardEditor);
