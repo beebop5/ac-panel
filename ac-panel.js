@@ -478,10 +478,8 @@ class AcPanelCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config.entity) {
-      throw new Error('You need to define an entity');
-    }
-    this.config = config;
+    this.config = config || {};
+    // Don't throw error here - let the render method handle missing entity
   }
 
   getCardSize() {
@@ -493,11 +491,28 @@ class AcPanelCard extends HTMLElement {
   }
 
   _render() {
-    if (!this.hass || !this.config.entity) {
+    if (!this.hass) {
       this.innerHTML = html`
         <style>${AcPanelCard.styles}</style>
         <ha-card>
-          <div class="error">Entity not found: ${this.config.entity}</div>
+          <div style="padding: 16px; text-align: center; color: var(--error-color, #f44336);">
+            <h3>Configuration Required</h3>
+            <p>Please configure this card by selecting an entity.</p>
+          </div>
+        </ha-card>
+      `;
+      return;
+    }
+
+    if (!this.config.entity) {
+      this.innerHTML = html`
+        <style>${AcPanelCard.styles}</style>
+        <ha-card>
+          <div style="padding: 16px; text-align: center; color: var(--error-color, #f44336);">
+            <h3>No Entity Selected</h3>
+            <p>Please select a climate entity to control your air conditioner.</p>
+            <p><em>Click the three dots menu → Edit Card to configure.</em></p>
+          </div>
         </ha-card>
       `;
       return;
@@ -508,7 +523,11 @@ class AcPanelCard extends HTMLElement {
       this.innerHTML = html`
         <style>${AcPanelCard.styles}</style>
         <ha-card>
-          <div class="error">Entity not found: ${this.config.entity}</div>
+          <div style="padding: 16px; text-align: center; color: var(--error-color, #f44336);">
+            <h3>Entity Not Found</h3>
+            <p>The entity "${this.config.entity}" was not found.</p>
+            <p><em>Please check the entity ID and try again.</em></p>
+          </div>
         </ha-card>
       `;
       return;
