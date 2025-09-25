@@ -884,6 +884,14 @@ class AcPanelCardEditor extends HTMLElement {
   }
 
   _setupEventListeners() {
+    // Remove existing listeners to prevent duplicates
+    const existingListeners = this.querySelectorAll('[data-listener-attached]');
+    existingListeners.forEach(el => {
+      el.removeEventListener('change', this._valueChanged);
+      el.removeEventListener('input', this._valueChanged);
+      el.removeAttribute('data-listener-attached');
+    });
+
     const entitySelect = this.querySelector('#entity');
     const fanEntitySelect = this.querySelector('#fan_entity');
     const swingEntitySelect = this.querySelector('#swing_entity');
@@ -892,18 +900,23 @@ class AcPanelCardEditor extends HTMLElement {
 
     if (entitySelect) {
       entitySelect.addEventListener('change', (e) => this._valueChanged(e));
+      entitySelect.setAttribute('data-listener-attached', 'true');
     }
     if (fanEntitySelect) {
       fanEntitySelect.addEventListener('change', (e) => this._valueChanged(e));
+      fanEntitySelect.setAttribute('data-listener-attached', 'true');
     }
     if (swingEntitySelect) {
       swingEntitySelect.addEventListener('change', (e) => this._valueChanged(e));
+      swingEntitySelect.setAttribute('data-listener-attached', 'true');
     }
     if (nameInput) {
       nameInput.addEventListener('input', (e) => this._valueChanged(e));
+      nameInput.setAttribute('data-listener-attached', 'true');
     }
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', (e) => this._valueChanged(e));
+      checkbox.setAttribute('data-listener-attached', 'true');
     });
   }
 
