@@ -567,33 +567,162 @@ class AcPanelCardEditor extends LitElement {
       .card-config {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 20px;
+        padding: 16px;
+        background: var(--card-background-color, #fff);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      .config-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--primary-color, #03a9f4);
+      }
+      
+      .config-header h3 {
+        margin: 0;
+        color: var(--primary-color, #03a9f4);
+        font-size: 18px;
+        font-weight: 500;
+      }
+      
+      .config-icon {
+        width: 24px;
+        height: 24px;
+        color: var(--primary-color, #03a9f4);
       }
       
       .config-section {
         display: flex;
         flex-direction: column;
         gap: 8px;
+        padding: 16px;
+        background: var(--secondary-background-color, #f5f5f5);
+        border-radius: 8px;
+        border-left: 4px solid var(--primary-color, #03a9f4);
       }
       
       .config-section label {
         font-weight: 500;
         color: var(--primary-text-color);
+        font-size: 14px;
+        margin-bottom: 4px;
       }
       
       .config-section input,
       .config-section select {
-        padding: 8px;
-        border: 1px solid var(--divider-color);
-        border-radius: 4px;
-        background: var(--card-background-color);
+        padding: 12px;
+        border: 2px solid var(--divider-color, #ddd);
+        border-radius: 6px;
+        background: var(--card-background-color, #fff);
         color: var(--primary-text-color);
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+      
+      .config-section input:focus,
+      .config-section select:focus {
+        border-color: var(--primary-color, #03a9f4);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(3, 169, 244, 0.1);
       }
       
       .config-section checkbox {
         display: flex;
         align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+      }
+      
+      .config-section checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary-color, #03a9f4);
+      }
+      
+      .config-section checkbox label {
+        margin: 0;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      
+      .entity-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 8px;
+      }
+      
+      .entity-section {
+        background: var(--card-background-color, #fff);
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid var(--divider-color, #ddd);
+      }
+      
+      .entity-section h4 {
+        margin: 0 0 12px 0;
+        color: var(--primary-color, #03a9f4);
+        font-size: 16px;
+        font-weight: 500;
+      }
+      
+      .entity-section .required {
+        color: var(--error-color, #f44336);
+        font-weight: 600;
+      }
+      
+      .entity-section .optional {
+        color: var(--secondary-text-color, #666);
+        font-size: 12px;
+        font-style: italic;
+      }
+      
+      .preview-section {
+        background: linear-gradient(135deg, var(--primary-color, #03a9f4) 0%, #0288d1 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 16px;
+      }
+      
+      .preview-section h4 {
+        margin: 0 0 12px 0;
+        font-size: 16px;
+        font-weight: 500;
+      }
+      
+      .preview-info {
+        display: flex;
+        flex-direction: column;
         gap: 8px;
+        font-size: 14px;
+        opacity: 0.9;
+      }
+      
+      .preview-info span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .preview-icon {
+        width: 16px;
+        height: 16px;
+      }
+      
+      @media (max-width: 768px) {
+        .entity-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .config-section {
+          padding: 12px;
+        }
       }
     `;
   }
@@ -613,90 +742,128 @@ class AcPanelCardEditor extends LitElement {
 
     return html`
       <div class="card-config">
-        <div class="config-section">
-          <label for="entity">Climate Entity (required):</label>
-          <select id="entity" .value=${this._entity} @change=${this._valueChanged}>
-            <option value="">Select a climate entity</option>
-            ${climateEntities.map((entity) => html`
-              <option value=${entity}>${entity}</option>
-            `)}
-          </select>
+        <div class="config-header">
+          <svg class="config-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+          </svg>
+          <h3>Air Conditioner Panel Configuration</h3>
         </div>
 
         <div class="config-section">
-          <label for="fan_entity">Fan Entity (optional):</label>
-          <select id="fan_entity" .value=${this._fan_entity} @change=${this._valueChanged}>
-            <option value="">Use climate entity fan control</option>
-            ${fanEntities.map((entity) => html`
-              <option value=${entity}>${entity}</option>
-            `)}
-          </select>
-        </div>
-
-        <div class="config-section">
-          <label for="swing_entity">Swing Entity (optional):</label>
-          <select id="swing_entity" .value=${this._swing_entity} @change=${this._valueChanged}>
-            <option value="">Use climate entity swing control</option>
-            ${fanEntities.map((entity) => html`
-              <option value=${entity}>${entity}</option>
-            `)}
-          </select>
-        </div>
-
-        <div class="config-section">
-          <label for="name">Name (optional):</label>
+          <label for="name">Card Name</label>
           <input
             id="name"
             type="text"
             .value=${this._name}
             @input=${this._valueChanged}
-            placeholder="Custom name for the card"
+            placeholder="Enter a custom name for your AC panel"
           />
         </div>
 
-        <div class="config-section">
-          <label>
-            <input
-              type="checkbox"
-              .checked=${this._hide_temperature}
-              @change=${this._valueChanged}
-            />
-            Hide Temperature Control
-          </label>
+        <div class="entity-grid">
+          <div class="entity-section">
+            <h4>🌡️ Climate Entity <span class="required">*</span></h4>
+            <select id="entity" .value=${this._entity} @change=${this._valueChanged}>
+              <option value="">Select your air conditioner</option>
+              ${climateEntities.map((entity) => html`
+                <option value=${entity}>${entity}</option>
+              `)}
+            </select>
+            <div class="optional">Required for temperature and mode control</div>
+          </div>
+
+          <div class="entity-section">
+            <h4>🌀 Fan Entity <span class="optional">(Optional)</span></h4>
+            <select id="fan_entity" .value=${this._fan_entity} @change=${this._valueChanged}>
+              <option value="">Use climate entity fan control</option>
+              ${fanEntities.map((entity) => html`
+                <option value=${entity}>${entity}</option>
+              `)}
+            </select>
+            <div class="optional">Separate fan entity for advanced control</div>
+          </div>
+
+          <div class="entity-section">
+            <h4>🔄 Swing Entity <span class="optional">(Optional)</span></h4>
+            <select id="swing_entity" .value=${this._swing_entity} @change=${this._valueChanged}>
+              <option value="">Use climate entity swing control</option>
+              ${fanEntities.map((entity) => html`
+                <option value=${entity}>${entity}</option>
+              `)}
+            </select>
+            <div class="optional">Separate swing entity for directional control</div>
+          </div>
+
+          <div class="entity-section">
+            <h4>⚙️ Display Options</h4>
+            <div class="config-section checkbox">
+              <input
+                type="checkbox"
+                id="hide_temperature"
+                .checked=${this._hide_temperature}
+                @change=${this._valueChanged}
+              />
+              <label for="hide_temperature">Hide Temperature Control</label>
+            </div>
+            <div class="config-section checkbox">
+              <input
+                type="checkbox"
+                id="hide_mode"
+                .checked=${this._hide_mode}
+                @change=${this._valueChanged}
+              />
+              <label for="hide_mode">Hide Mode Selection</label>
+            </div>
+            <div class="config-section checkbox">
+              <input
+                type="checkbox"
+                id="hide_fan_speed"
+                .checked=${this._hide_fan_speed}
+                @change=${this._valueChanged}
+              />
+              <label for="hide_fan_speed">Hide Fan Speed Control</label>
+            </div>
+            <div class="config-section checkbox">
+              <input
+                type="checkbox"
+                id="hide_swing"
+                .checked=${this._hide_swing}
+                @change=${this._valueChanged}
+              />
+              <label for="hide_swing">Hide Swing Control</label>
+            </div>
+          </div>
         </div>
 
-        <div class="config-section">
-          <label>
-            <input
-              type="checkbox"
-              .checked=${this._hide_mode}
-              @change=${this._valueChanged}
-            />
-            Hide Mode Selection
-          </label>
-        </div>
-
-        <div class="config-section">
-          <label>
-            <input
-              type="checkbox"
-              .checked=${this._hide_fan_speed}
-              @change=${this._valueChanged}
-            />
-            Hide Fan Speed Control
-          </label>
-        </div>
-
-        <div class="config-section">
-          <label>
-            <input
-              type="checkbox"
-              .checked=${this._hide_swing}
-              @change=${this._valueChanged}
-            />
-            Hide Swing Control
-          </label>
-        </div>
+        ${this._entity ? html`
+          <div class="preview-section">
+            <h4>📋 Configuration Preview</h4>
+            <div class="preview-info">
+              <span>
+                <svg class="preview-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                </svg>
+                Climate: ${this._entity}
+              </span>
+              ${this._fan_entity ? html`
+                <span>
+                  <svg class="preview-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                  </svg>
+                  Fan: ${this._fan_entity}
+                </span>
+              ` : ''}
+              ${this._swing_entity ? html`
+                <span>
+                  <svg class="preview-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                  </svg>
+                  Swing: ${this._swing_entity}
+                </span>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
       </div>
     `;
   }
