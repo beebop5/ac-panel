@@ -1,7 +1,8 @@
 {
   "name": "Air Conditioner Panel",
   "content_in_root": true,
-  "filename": "ac-panel",
+  "filename": "ac-panel.js",
+  "type": "module",
   "homeassistant": "2023.1.0",
   "render_readme": true,
   "domains": ["climate"],
