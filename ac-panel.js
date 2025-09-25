@@ -11,6 +11,8 @@ class AcPanel extends LitElement {
     return {
       hass: { type: Object },
       entity: { type: String },
+      fan_entity: { type: String },
+      swing_entity: { type: String },
       name: { type: String },
       theme: { type: String },
       hide_temperature: { type: Boolean },
@@ -39,6 +41,8 @@ class AcPanel extends LitElement {
     this.hide_mode = false;
     this.hide_fan_speed = false;
     this.hide_swing = false;
+    this.fan_entity = null;
+    this.swing_entity = null;
   }
 
   static get styles() {
@@ -266,8 +270,22 @@ class AcPanel extends LitElement {
     this._isOn = state.state === 'on';
     this._temperature = state.attributes.temperature || 22;
     this._currentMode = state.attributes.hvac_mode || 'cool';
-    this._currentFanSpeed = state.attributes.fan_mode || 'auto';
-    this._currentSwing = state.attributes.swing_mode || 'off';
+    
+    // Check for separate fan entity
+    if (this.fan_entity && this.hass.states[this.fan_entity]) {
+      const fanState = this.hass.states[this.fan_entity];
+      this._currentFanSpeed = fanState.state || fanState.attributes.fan_mode || 'auto';
+    } else {
+      this._currentFanSpeed = state.attributes.fan_mode || 'auto';
+    }
+    
+    // Check for separate swing entity
+    if (this.swing_entity && this.hass.states[this.swing_entity]) {
+      const swingState = this.hass.states[this.swing_entity];
+      this._currentSwing = swingState.state || swingState.attributes.swing_mode || 'off';
+    } else {
+      this._currentSwing = state.attributes.swing_mode || 'off';
+    }
   }
 
   _callService(service, data = {}) {
@@ -290,11 +308,29 @@ class AcPanel extends LitElement {
   }
 
   _setFanSpeed(speed) {
-    this._callService('set_fan_mode', { fan_mode: speed });
+    if (this.fan_entity) {
+      // Use separate fan entity
+      this.hass.callService('fan', 'set_speed', {
+        entity_id: this.fan_entity,
+        speed: speed
+      });
+    } else {
+      // Use climate entity
+      this._callService('set_fan_mode', { fan_mode: speed });
+    }
   }
 
   _setSwing(swing) {
-    this._callService('set_swing_mode', { swing_mode: swing });
+    if (this.swing_entity) {
+      // Use separate swing entity
+      this.hass.callService('fan', 'set_direction', {
+        entity_id: this.swing_entity,
+        direction: swing
+      });
+    } else {
+      // Use climate entity
+      this._callService('set_swing_mode', { swing_mode: swing });
+    }
   }
 
   render() {
@@ -460,6 +496,8 @@ class AcPanelCard extends LitElement {
         <ac-panel
           .hass=${this.hass}
           .entity=${this.config.entity}
+          .fan_entity=${this.config.fan_entity}
+          .swing_entity=${this.config.swing_entity}
           .name=${this.config.name}
           .theme=${this.config.theme}
           .hide_temperature=${this.config.hide_temperature}
@@ -494,6 +532,14 @@ class AcPanelCardEditor extends LitElement {
 
   get _entity() {
     return this.config?.entity || '';
+  }
+
+  get _fan_entity() {
+    return this.config?.fan_entity || '';
+  }
+
+  get _swing_entity() {
+    return this.config?.swing_entity || '';
   }
 
   get _name() {
@@ -557,17 +603,41 @@ class AcPanelCardEditor extends LitElement {
       return html`<div>Loading...</div>`;
     }
 
-    const entities = Object.keys(this.hass.states).filter(
+    const climateEntities = Object.keys(this.hass.states).filter(
       (entity) => entity.startsWith('climate.')
+    );
+    
+    const fanEntities = Object.keys(this.hass.states).filter(
+      (entity) => entity.startsWith('fan.')
     );
 
     return html`
       <div class="card-config">
         <div class="config-section">
-          <label for="entity">Entity:</label>
+          <label for="entity">Climate Entity (required):</label>
           <select id="entity" .value=${this._entity} @change=${this._valueChanged}>
-            <option value="">Select an entity</option>
-            ${entities.map((entity) => html`
+            <option value="">Select a climate entity</option>
+            ${climateEntities.map((entity) => html`
+              <option value=${entity}>${entity}</option>
+            `)}
+          </select>
+        </div>
+
+        <div class="config-section">
+          <label for="fan_entity">Fan Entity (optional):</label>
+          <select id="fan_entity" .value=${this._fan_entity} @change=${this._valueChanged}>
+            <option value="">Use climate entity fan control</option>
+            ${fanEntities.map((entity) => html`
+              <option value=${entity}>${entity}</option>
+            `)}
+          </select>
+        </div>
+
+        <div class="config-section">
+          <label for="swing_entity">Swing Entity (optional):</label>
+          <select id="swing_entity" .value=${this._swing_entity} @change=${this._valueChanged}>
+            <option value="">Use climate entity swing control</option>
+            ${fanEntities.map((entity) => html`
               <option value=${entity}>${entity}</option>
             `)}
           </select>
@@ -641,6 +711,10 @@ class AcPanelCardEditor extends LitElement {
 
     if (target.id === 'entity') {
       this.config.entity = value;
+    } else if (target.id === 'fan_entity') {
+      this.config.fan_entity = value;
+    } else if (target.id === 'swing_entity') {
+      this.config.swing_entity = value;
     } else if (target.id === 'name') {
       this.config.name = value;
     } else if (target.type === 'checkbox') {

@@ -54,6 +54,8 @@ entity: climate.living_room_ac
 ```yaml
 type: custom:ac-panel-card
 entity: climate.living_room_ac
+fan_entity: fan.living_room_fan  # Optional: separate fan entity
+swing_entity: fan.living_room_swing  # Optional: separate swing entity
 name: "Living Room AC"
 hide_temperature: false
 hide_mode: false
@@ -82,6 +84,8 @@ swing_modes:
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `entity` | string | **Required** | The climate entity ID to control |
+| `fan_entity` | string | `null` | Optional separate fan entity for fan control |
+| `swing_entity` | string | `null` | Optional separate swing entity for swing control |
 | `name` | string | Entity name | Custom name for the card |
 | `hide_temperature` | boolean | `false` | Hide the temperature control section |
 | `hide_mode` | boolean | `false` | Hide the mode selection section |
@@ -91,15 +95,26 @@ swing_modes:
 | `fan_speeds` | array | `['auto', 'low', 'medium', 'high']` | Available fan speeds |
 | `swing_modes` | array | `['off', 'horizontal', 'vertical', 'both']` | Available swing modes |
 
-## Supported Climate Entities
+## Supported Entities
 
-This card works with any Home Assistant climate entity that supports the following services:
+This card works with:
 
+**Climate Entities (required):**
 - `climate.turn_on` / `climate.turn_off`
 - `climate.set_temperature`
 - `climate.set_hvac_mode`
-- `climate.set_fan_mode`
-- `climate.set_swing_mode`
+- `climate.set_fan_mode` (if no separate fan entity)
+- `climate.set_swing_mode` (if no separate swing entity)
+
+**Optional Fan Entities:**
+- `fan.set_speed` - for separate fan control
+- `fan.set_direction` - for separate swing control
+
+**Configuration Flexibility:**
+- **Single Climate Entity**: Use the climate entity for all controls
+- **Separate Fan Entity**: Use a dedicated fan entity for fan speed control
+- **Separate Swing Entity**: Use a dedicated fan entity for swing control
+- **Mixed Configuration**: Combine climate entity with separate fan/swing entities
 
 ## Customization
 
