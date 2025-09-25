@@ -15,21 +15,28 @@ A custom Home Assistant dashboard component that provides an intuitive interface
 
 ## Installation
 
-### Method 1: HACS (Recommended)
+### Method 1: Manual Installation (Recommended)
+
+1. Download the `ac-panel.js` file from this repository
+2. Place it in your Home Assistant `www` directory (create it if it doesn't exist)
+3. Add the resource to your Lovelace configuration:
+
+```yaml
+resources:
+  - url: /local/ac-panel.js
+    type: module
+```
+
+4. Restart Home Assistant
+5. The card will be available in the card picker as "AC Panel Card"
+
+### Method 2: HACS (If Available)
 
 1. Open HACS in your Home Assistant instance
-2. Go to "Frontend" section
-3. Click the three dots menu and select "Custom repositories"
-4. Add this repository URL: `https://github.com/beebop5/ac-panel`
-5. Set the category to "Plugin"
-6. Click "Add" and then "Install"
-
-### Method 2: Manual Installation
-
-1. Download the latest release from the [releases page](https://github.com/beebop5/ac-panel/releases)
-2. Extract the `ac_panel` folder to your Home Assistant `custom_components` directory
-3. Restart Home Assistant
-4. The component will be available in the card picker
+2. Go to "Explore & Download Repositories"
+3. Search for "ac-panel" or add this repository URL: `https://github.com/beebop5/ac-panel`
+4. Install the plugin
+5. Add the resource to your Lovelace configuration as shown above
 
 ## Usage
 
