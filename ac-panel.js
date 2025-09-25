@@ -1,35 +1,18 @@
 // Air Conditioner Panel for Home Assistant
 // Custom Lovelace card for controlling air conditioners
 
-const LitElement = customElements.get('home-assistant')?.__proto__?.constructor || Object.getPrototypeOf(customElements.get('home-assistant'));
-const html = LitElement?.html || (() => '');
-const css = LitElement?.css || (() => '');
+// Simple template function
+const html = (strings, ...values) => {
+  return strings.reduce((result, string, i) => result + string + (values[i] || ''), '');
+};
+
+// Simple CSS function
+const css = (strings, ...values) => {
+  return strings.reduce((result, string, i) => result + string + (values[i] || ''), '');
+};
 
 // Main AC Panel Component
-class AcPanel extends LitElement {
-  static get properties() {
-    return {
-      hass: { type: Object },
-      entity: { type: String },
-      fan_entity: { type: String },
-      swing_entity: { type: String },
-      name: { type: String },
-      theme: { type: String },
-      hide_temperature: { type: Boolean },
-      hide_mode: { type: Boolean },
-      hide_fan_speed: { type: Boolean },
-      hide_swing: { type: Boolean },
-      modes: { type: Array },
-      fan_speeds: { type: Array },
-      swing_modes: { type: Array },
-      _temperature: { type: Number, state: true },
-      _currentMode: { type: String, state: true },
-      _currentFanSpeed: { type: String, state: true },
-      _currentSwing: { type: String, state: true },
-      _isOn: { type: Boolean, state: true }
-    };
-  }
-
+class AcPanel extends HTMLElement {
   constructor() {
     super();
     this._temperature = 22;
@@ -251,14 +234,8 @@ class AcPanel extends LitElement {
   }
 
   connectedCallback() {
-    super.connectedCallback();
     this._updateState();
-  }
-
-  updated(changedProperties) {
-    if (changedProperties.has('hass') || changedProperties.has('entity')) {
-      this._updateState();
-    }
+    this._render();
   }
 
   _updateState() {
@@ -333,7 +310,7 @@ class AcPanel extends LitElement {
     }
   }
 
-  render() {
+  _render() {
     const defaultModes = ['cool', 'heat', 'fan_only', 'auto', 'dry'];
     const defaultFanSpeeds = ['auto', 'low', 'medium', 'high'];
     const defaultSwingModes = ['off', 'horizontal', 'vertical', 'both'];
@@ -342,7 +319,8 @@ class AcPanel extends LitElement {
     const fanSpeeds = this.fan_speeds || defaultFanSpeeds;
     const swingModes = this.swing_modes || defaultSwingModes;
 
-    return html`
+    this.innerHTML = html`
+      <style>${AcPanel.styles}</style>
       <div class="ac-card">
         <div class="ac-header">
           <h2 class="ac-title">${this.name || 'Air Conditioner'}</h2>
@@ -361,15 +339,15 @@ class AcPanel extends LitElement {
               <div class="ac-temp-controls">
                 <button 
                   class="ac-temp-btn" 
-                  @click=${() => this._setTemperature(this._temperature - 1)}
-                  ?disabled=${!this._isOn}
+                  onclick="this._setTemperature(${this._temperature - 1})"
+                  ${!this._isOn ? 'disabled' : ''}
                 >
                   −
                 </button>
                 <button 
                   class="ac-temp-btn" 
-                  @click=${() => this._setTemperature(this._temperature + 1)}
-                  ?disabled=${!this._isOn}
+                  onclick="this._setTemperature(${this._temperature + 1})"
+                  ${!this._isOn ? 'disabled' : ''}
                 >
                   +
                 </button>
@@ -384,7 +362,7 @@ class AcPanel extends LitElement {
                 ${modes.map(mode => html`
                   <div 
                     class="ac-option ${this._currentMode === mode ? 'active' : ''}"
-                    @click=${() => this._setMode(mode)}
+                    onclick="this._setMode('${mode}')"
                   >
                     ${mode.replace('_', ' ').toUpperCase()}
                   </div>
@@ -400,7 +378,7 @@ class AcPanel extends LitElement {
                 ${fanSpeeds.map(speed => html`
                   <div 
                     class="ac-option ${this._currentFanSpeed === speed ? 'active' : ''}"
-                    @click=${() => this._setFanSpeed(speed)}
+                    onclick="this._setFanSpeed('${speed}')"
                   >
                     ${speed.toUpperCase()}
                   </div>
@@ -416,7 +394,7 @@ class AcPanel extends LitElement {
                 ${swingModes.map(swing => html`
                   <div 
                     class="ac-option ${this._currentSwing === swing ? 'active' : ''}"
-                    @click=${() => this._setSwing(swing)}
+                    onclick="this._setSwing('${swing}')"
                   >
                     ${swing.toUpperCase()}
                   </div>
@@ -427,7 +405,7 @@ class AcPanel extends LitElement {
 
           <button 
             class="ac-power-btn ${this._isOn ? '' : 'off'}"
-            @click=${this._togglePower}
+            onclick="this._togglePower()"
           >
             ${this._isOn ? 'TURN OFF' : 'TURN ON'}
           </button>
@@ -437,15 +415,8 @@ class AcPanel extends LitElement {
   }
 }
 
-// Lovelace Card Wrapper - This is what appears in the dashboard
-class AcPanelCard extends LitElement {
-  static get properties() {
-    return {
-      hass: { type: Object },
-      config: { type: Object }
-    };
-  }
-
+// Lovelace Card Wrapper
+class AcPanelCard extends HTMLElement {
   constructor() {
     super();
     this.config = {};
@@ -473,40 +444,46 @@ class AcPanelCard extends LitElement {
     return 3;
   }
 
-  render() {
+  connectedCallback() {
+    this._render();
+  }
+
+  _render() {
     if (!this.hass || !this.config.entity) {
-      return html`
+      this.innerHTML = html`
+        <style>${AcPanelCard.styles}</style>
         <ha-card>
           <div class="error">Entity not found: ${this.config.entity}</div>
         </ha-card>
       `;
+      return;
     }
 
     const state = this.hass.states[this.config.entity];
     if (!state) {
-      return html`
+      this.innerHTML = html`
+        <style>${AcPanelCard.styles}</style>
         <ha-card>
           <div class="error">Entity not found: ${this.config.entity}</div>
         </ha-card>
       `;
+      return;
     }
 
-    return html`
+    this.innerHTML = html`
+      <style>${AcPanelCard.styles}</style>
       <ha-card>
         <ac-panel
-          .hass=${this.hass}
-          .entity=${this.config.entity}
-          .fan_entity=${this.config.fan_entity}
-          .swing_entity=${this.config.swing_entity}
-          .name=${this.config.name}
-          .theme=${this.config.theme}
-          .hide_temperature=${this.config.hide_temperature}
-          .hide_mode=${this.config.hide_mode}
-          .hide_fan_speed=${this.config.hide_fan_speed}
-          .hide_swing=${this.config.hide_swing}
-          .modes=${this.config.modes}
-          .fan_speeds=${this.config.fan_speeds}
-          .swing_modes=${this.config.swing_modes}
+          hass="${this.hass}"
+          entity="${this.config.entity}"
+          fan_entity="${this.config.fan_entity || ''}"
+          swing_entity="${this.config.swing_entity || ''}"
+          name="${this.config.name || ''}"
+          theme="${this.config.theme || ''}"
+          hide_temperature="${this.config.hide_temperature || false}"
+          hide_mode="${this.config.hide_mode || false}"
+          hide_fan_speed="${this.config.hide_fan_speed || false}"
+          hide_swing="${this.config.hide_swing || false}"
         ></ac-panel>
       </ha-card>
     `;
@@ -517,13 +494,11 @@ class AcPanelCard extends LitElement {
   }
 }
 
-// Card Editor for Lovelace UI
-class AcPanelCardEditor extends LitElement {
-  static get properties() {
-    return {
-      hass: { type: Object },
-      config: { type: Object }
-    };
+// Card Editor
+class AcPanelCardEditor extends HTMLElement {
+  constructor() {
+    super();
+    this.config = {};
   }
 
   setConfig(config) {
@@ -588,12 +563,6 @@ class AcPanelCardEditor extends LitElement {
         color: var(--primary-color, #03a9f4);
         font-size: 18px;
         font-weight: 500;
-      }
-      
-      .config-icon {
-        width: 24px;
-        height: 24px;
-        color: var(--primary-color, #03a9f4);
       }
       
       .config-section {
@@ -710,11 +679,6 @@ class AcPanelCardEditor extends LitElement {
         gap: 8px;
       }
       
-      .preview-icon {
-        width: 16px;
-        height: 16px;
-      }
-      
       @media (max-width: 768px) {
         .entity-grid {
           grid-template-columns: 1fr;
@@ -727,9 +691,15 @@ class AcPanelCardEditor extends LitElement {
     `;
   }
 
-  render() {
+  connectedCallback() {
+    this._render();
+    this._setupEventListeners();
+  }
+
+  _render() {
     if (!this.hass) {
-      return html`<div>Loading...</div>`;
+      this.innerHTML = html`<div>Loading...</div>`;
+      return;
     }
 
     const climateEntities = Object.keys(this.hass.states).filter(
@@ -740,12 +710,10 @@ class AcPanelCardEditor extends LitElement {
       (entity) => entity.startsWith('fan.')
     );
 
-    return html`
+    this.innerHTML = html`
+      <style>${AcPanelCardEditor.styles}</style>
       <div class="card-config">
         <div class="config-header">
-          <svg class="config-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
-          </svg>
           <h3>Air Conditioner Panel Configuration</h3>
         </div>
 
@@ -754,8 +722,7 @@ class AcPanelCardEditor extends LitElement {
           <input
             id="name"
             type="text"
-            .value=${this._name}
-            @input=${this._valueChanged}
+            value="${this._name}"
             placeholder="Enter a custom name for your AC panel"
           />
         </div>
@@ -763,10 +730,10 @@ class AcPanelCardEditor extends LitElement {
         <div class="entity-grid">
           <div class="entity-section">
             <h4>🌡️ Climate Entity <span class="required">*</span></h4>
-            <select id="entity" .value=${this._entity} @change=${this._valueChanged}>
+            <select id="entity">
               <option value="">Select your air conditioner</option>
               ${climateEntities.map((entity) => html`
-                <option value=${entity}>${entity}</option>
+                <option value="${entity}" ${this._entity === entity ? 'selected' : ''}>${entity}</option>
               `)}
             </select>
             <div class="optional">Required for temperature and mode control</div>
@@ -774,10 +741,10 @@ class AcPanelCardEditor extends LitElement {
 
           <div class="entity-section">
             <h4>🌀 Fan Entity <span class="optional">(Optional)</span></h4>
-            <select id="fan_entity" .value=${this._fan_entity} @change=${this._valueChanged}>
+            <select id="fan_entity">
               <option value="">Use climate entity fan control</option>
               ${fanEntities.map((entity) => html`
-                <option value=${entity}>${entity}</option>
+                <option value="${entity}" ${this._fan_entity === entity ? 'selected' : ''}>${entity}</option>
               `)}
             </select>
             <div class="optional">Separate fan entity for advanced control</div>
@@ -785,10 +752,10 @@ class AcPanelCardEditor extends LitElement {
 
           <div class="entity-section">
             <h4>🔄 Swing Entity <span class="optional">(Optional)</span></h4>
-            <select id="swing_entity" .value=${this._swing_entity} @change=${this._valueChanged}>
+            <select id="swing_entity">
               <option value="">Use climate entity swing control</option>
               ${fanEntities.map((entity) => html`
-                <option value=${entity}>${entity}</option>
+                <option value="${entity}" ${this._swing_entity === entity ? 'selected' : ''}>${entity}</option>
               `)}
             </select>
             <div class="optional">Separate swing entity for directional control</div>
@@ -800,8 +767,7 @@ class AcPanelCardEditor extends LitElement {
               <input
                 type="checkbox"
                 id="hide_temperature"
-                .checked=${this._hide_temperature}
-                @change=${this._valueChanged}
+                ${this._hide_temperature ? 'checked' : ''}
               />
               <label for="hide_temperature">Hide Temperature Control</label>
             </div>
@@ -809,8 +775,7 @@ class AcPanelCardEditor extends LitElement {
               <input
                 type="checkbox"
                 id="hide_mode"
-                .checked=${this._hide_mode}
-                @change=${this._valueChanged}
+                ${this._hide_mode ? 'checked' : ''}
               />
               <label for="hide_mode">Hide Mode Selection</label>
             </div>
@@ -818,8 +783,7 @@ class AcPanelCardEditor extends LitElement {
               <input
                 type="checkbox"
                 id="hide_fan_speed"
-                .checked=${this._hide_fan_speed}
-                @change=${this._valueChanged}
+                ${this._hide_fan_speed ? 'checked' : ''}
               />
               <label for="hide_fan_speed">Hide Fan Speed Control</label>
             </div>
@@ -827,8 +791,7 @@ class AcPanelCardEditor extends LitElement {
               <input
                 type="checkbox"
                 id="hide_swing"
-                .checked=${this._hide_swing}
-                @change=${this._valueChanged}
+                ${this._hide_swing ? 'checked' : ''}
               />
               <label for="hide_swing">Hide Swing Control</label>
             </div>
@@ -839,33 +802,38 @@ class AcPanelCardEditor extends LitElement {
           <div class="preview-section">
             <h4>📋 Configuration Preview</h4>
             <div class="preview-info">
-              <span>
-                <svg class="preview-icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
-                </svg>
-                Climate: ${this._entity}
-              </span>
-              ${this._fan_entity ? html`
-                <span>
-                  <svg class="preview-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
-                  </svg>
-                  Fan: ${this._fan_entity}
-                </span>
-              ` : ''}
-              ${this._swing_entity ? html`
-                <span>
-                  <svg class="preview-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
-                  </svg>
-                  Swing: ${this._swing_entity}
-                </span>
-              ` : ''}
+              <span>Climate: ${this._entity}</span>
+              ${this._fan_entity ? html`<span>Fan: ${this._fan_entity}</span>` : ''}
+              ${this._swing_entity ? html`<span>Swing: ${this._swing_entity}</span>` : ''}
             </div>
           </div>
         ` : ''}
       </div>
     `;
+  }
+
+  _setupEventListeners() {
+    const entitySelect = this.querySelector('#entity');
+    const fanEntitySelect = this.querySelector('#fan_entity');
+    const swingEntitySelect = this.querySelector('#swing_entity');
+    const nameInput = this.querySelector('#name');
+    const checkboxes = this.querySelectorAll('input[type="checkbox"]');
+
+    if (entitySelect) {
+      entitySelect.addEventListener('change', (e) => this._valueChanged(e));
+    }
+    if (fanEntitySelect) {
+      fanEntitySelect.addEventListener('change', (e) => this._valueChanged(e));
+    }
+    if (swingEntitySelect) {
+      swingEntitySelect.addEventListener('change', (e) => this._valueChanged(e));
+    }
+    if (nameInput) {
+      nameInput.addEventListener('input', (e) => this._valueChanged(e));
+    }
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', (e) => this._valueChanged(e));
+    });
   }
 
   _valueChanged(ev) {
