@@ -266,6 +266,10 @@ class AcPanel extends HTMLElement {
   }
 
   _callService(service, data = {}) {
+    if (!this.hass) {
+      console.error('AC Panel: hass object is not available');
+      return;
+    }
     this.hass.callService('climate', service, {
       entity_id: this.entity,
       ...data
@@ -285,6 +289,11 @@ class AcPanel extends HTMLElement {
   }
 
   _setFanSpeed(speed) {
+    if (!this.hass) {
+      console.error('AC Panel: hass object is not available');
+      return;
+    }
+    
     if (this.fan_entity) {
       // Use separate select entity for fan speed
       this.hass.callService('select', 'select_option', {
@@ -298,6 +307,11 @@ class AcPanel extends HTMLElement {
   }
 
   _setSwing(swing) {
+    if (!this.hass) {
+      console.error('AC Panel: hass object is not available');
+      return;
+    }
+    
     if (this.swing_entity) {
       // Use separate select entity for swing
       this.hass.callService('select', 'select_option', {
@@ -540,7 +554,6 @@ class AcPanelCard extends HTMLElement {
       <style>${AcPanelCard.styles}</style>
       <ha-card>
         <ac-panel
-          hass="${this.hass}"
           entity="${this.config.entity}"
           fan_entity="${this.config.fan_entity || ''}"
           swing_entity="${this.config.swing_entity || ''}"
@@ -550,9 +563,19 @@ class AcPanelCard extends HTMLElement {
           hide_mode="${this.config.hide_mode || false}"
           hide_fan_speed="${this.config.hide_fan_speed || false}"
           hide_swing="${this.config.hide_swing || false}"
+          modes="${JSON.stringify(this.config.modes || [])}"
+          fan_speeds="${JSON.stringify(this.config.fan_speeds || [])}"
+          swing_modes="${JSON.stringify(this.config.swing_modes || [])}"
         ></ac-panel>
       </ha-card>
     `;
+    
+    // Set the hass property directly on the ac-panel element
+    const acPanel = this.querySelector('ac-panel');
+    if (acPanel) {
+      acPanel.hass = this.hass;
+      acPanel._setupEventListeners(); // Ensure event listeners are set up after rendering
+    }
   }
 
   static getConfigElement() {
