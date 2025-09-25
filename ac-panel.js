@@ -248,18 +248,18 @@ class AcPanel extends HTMLElement {
     this._temperature = state.attributes.temperature || 22;
     this._currentMode = state.attributes.hvac_mode || 'cool';
     
-    // Check for separate fan entity
+    // Check for separate fan entity (select)
     if (this.fan_entity && this.hass.states[this.fan_entity]) {
       const fanState = this.hass.states[this.fan_entity];
-      this._currentFanSpeed = fanState.state || fanState.attributes.fan_mode || 'auto';
+      this._currentFanSpeed = fanState.state || 'auto';
     } else {
       this._currentFanSpeed = state.attributes.fan_mode || 'auto';
     }
     
-    // Check for separate swing entity
+    // Check for separate swing entity (select)
     if (this.swing_entity && this.hass.states[this.swing_entity]) {
       const swingState = this.hass.states[this.swing_entity];
-      this._currentSwing = swingState.state || swingState.attributes.swing_mode || 'off';
+      this._currentSwing = swingState.state || 'off';
     } else {
       this._currentSwing = state.attributes.swing_mode || 'off';
     }
@@ -286,10 +286,10 @@ class AcPanel extends HTMLElement {
 
   _setFanSpeed(speed) {
     if (this.fan_entity) {
-      // Use separate fan entity
-      this.hass.callService('fan', 'set_speed', {
+      // Use separate select entity for fan speed
+      this.hass.callService('select', 'select_option', {
         entity_id: this.fan_entity,
-        speed: speed
+        option: speed
       });
     } else {
       // Use climate entity
@@ -299,10 +299,10 @@ class AcPanel extends HTMLElement {
 
   _setSwing(swing) {
     if (this.swing_entity) {
-      // Use separate swing entity
-      this.hass.callService('fan', 'set_direction', {
+      // Use separate select entity for swing
+      this.hass.callService('select', 'select_option', {
         entity_id: this.swing_entity,
-        direction: swing
+        option: swing
       });
     } else {
       // Use climate entity
@@ -769,8 +769,8 @@ class AcPanelCardEditor extends HTMLElement {
       (entity) => entity.startsWith('climate.')
     );
     
-    const fanEntities = Object.keys(this.hass.states).filter(
-      (entity) => entity.startsWith('fan.')
+    const selectEntities = Object.keys(this.hass.states).filter(
+      (entity) => entity.startsWith('select.')
     );
 
     this.innerHTML = html`
@@ -803,25 +803,25 @@ class AcPanelCardEditor extends HTMLElement {
           </div>
 
           <div class="entity-section">
-            <h4>🌀 Fan Entity <span class="optional">(Optional)</span></h4>
+            <h4>🌀 Fan Speed Select <span class="optional">(Optional)</span></h4>
             <select id="fan_entity">
               <option value="">Use climate entity fan control</option>
-              ${fanEntities.map((entity) => html`
+              ${selectEntities.map((entity) => html`
                 <option value="${entity}" ${this._fan_entity === entity ? 'selected' : ''}>${entity}</option>
               `)}
             </select>
-            <div class="optional">Separate fan entity for advanced control</div>
+            <div class="optional">Separate select entity for fan speed control</div>
           </div>
 
           <div class="entity-section">
-            <h4>🔄 Swing Entity <span class="optional">(Optional)</span></h4>
+            <h4>🔄 Swing Select <span class="optional">(Optional)</span></h4>
             <select id="swing_entity">
               <option value="">Use climate entity swing control</option>
-              ${fanEntities.map((entity) => html`
+              ${selectEntities.map((entity) => html`
                 <option value="${entity}" ${this._swing_entity === entity ? 'selected' : ''}>${entity}</option>
               `)}
             </select>
-            <div class="optional">Separate swing entity for directional control</div>
+            <div class="optional">Separate select entity for swing control</div>
           </div>
 
           <div class="entity-section">

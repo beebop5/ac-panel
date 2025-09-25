@@ -106,15 +106,15 @@ This card works with:
 - `climate.set_fan_mode` (if no separate fan entity)
 - `climate.set_swing_mode` (if no separate swing entity)
 
-**Optional Fan Entities:**
-- `fan.set_speed` - for separate fan control
-- `fan.set_direction` - for separate swing control
+**Optional Select Entities:**
+- `select.select_option` - for separate fan speed control
+- `select.select_option` - for separate swing control
 
 **Configuration Flexibility:**
 - **Single Climate Entity**: Use the climate entity for all controls
-- **Separate Fan Entity**: Use a dedicated fan entity for fan speed control
-- **Separate Swing Entity**: Use a dedicated fan entity for swing control
-- **Mixed Configuration**: Combine climate entity with separate fan/swing entities
+- **Separate Fan Select**: Use a dedicated select entity for fan speed control
+- **Separate Swing Select**: Use a dedicated select entity for swing control
+- **Mixed Configuration**: Combine climate entity with separate select entities
 
 ## Customization
 
