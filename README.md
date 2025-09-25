@@ -20,13 +20,13 @@ A custom Home Assistant dashboard component that provides an intuitive interface
 1. Open HACS in your Home Assistant instance
 2. Go to "Frontend" section
 3. Click the three dots menu and select "Custom repositories"
-4. Add this repository URL: `https://github.com/yourusername/ac_panel`
+4. Add this repository URL: `https://github.com/beebop5/ac-panel`
 5. Set the category to "Plugin"
 6. Click "Add" and then "Install"
 
 ### Method 2: Manual Installation
 
-1. Download the latest release from the [releases page](https://github.com/yourusername/ac_panel/releases)
+1. Download the latest release from the [releases page](https://github.com/beebop5/ac-panel/releases)
 2. Extract the `ac_panel` folder to your Home Assistant `custom_components` directory
 3. Restart Home Assistant
 4. The component will be available in the card picker
@@ -177,7 +177,7 @@ fan_speeds:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/ac_panel.git
+git clone https://github.com/beebop5/ac-panel.git
 cd ac_panel
 ```
 
@@ -205,7 +205,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- [GitHub Issues](https://github.com/yourusername/ac_panel/issues)
+- [GitHub Issues](https://github.com/beebop5/ac-panel/issues)
 - [Home Assistant Community](https://community.home-assistant.io/)
 - [Discord](https://discord.gg/c5DvZ4e)
 
