@@ -478,8 +478,8 @@ class AcPanelCard extends HTMLElement {
   }
 
   setConfig(config) {
-    // Create a new config object to avoid "object is not extensible" error
-    this.config = { ...(config || {}) };
+    // Create a completely new config object to avoid "object is not extensible" error
+    this.config = JSON.parse(JSON.stringify(config || {}));
     // Don't throw error here - let the render method handle missing entity
     console.log('AC Panel Card: Configuration received', this.config);
     this._render();
@@ -568,8 +568,8 @@ class AcPanelCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
-    // Create a new config object to avoid "object is not extensible" error
-    this.config = { ...(config || {}) };
+    // Create a completely new config object to avoid "object is not extensible" error
+    this.config = JSON.parse(JSON.stringify(config || {}));
     // Use setTimeout to ensure DOM is ready
     setTimeout(() => {
       this._render();
@@ -923,8 +923,8 @@ class AcPanelCardEditor extends HTMLElement {
   }
 
   _valueChanged(ev) {
-    // Create a new config object to avoid "object is not extensible" error
-    const newConfig = { ...this.config };
+    // Create a completely new config object to avoid "object is not extensible" error
+    const newConfig = JSON.parse(JSON.stringify(this.config || {}));
 
     const target = ev.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
