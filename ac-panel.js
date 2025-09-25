@@ -478,7 +478,8 @@ class AcPanelCard extends HTMLElement {
   }
 
   setConfig(config) {
-    this.config = config || {};
+    // Create a new config object to avoid "object is not extensible" error
+    this.config = { ...(config || {}) };
     // Don't throw error here - let the render method handle missing entity
     console.log('AC Panel Card: Configuration received', this.config);
     this._render();
@@ -567,7 +568,8 @@ class AcPanelCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
-    this.config = config || {};
+    // Create a new config object to avoid "object is not extensible" error
+    this.config = { ...(config || {}) };
     // Use setTimeout to ensure DOM is ready
     setTimeout(() => {
       this._render();
@@ -921,24 +923,26 @@ class AcPanelCardEditor extends HTMLElement {
   }
 
   _valueChanged(ev) {
-    if (!this.config) {
-      this.config = {};
-    }
+    // Create a new config object to avoid "object is not extensible" error
+    const newConfig = { ...this.config };
 
     const target = ev.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
 
     if (target.id === 'entity') {
-      this.config.entity = value;
+      newConfig.entity = value;
     } else if (target.id === 'fan_entity') {
-      this.config.fan_entity = value;
+      newConfig.fan_entity = value;
     } else if (target.id === 'swing_entity') {
-      this.config.swing_entity = value;
+      newConfig.swing_entity = value;
     } else if (target.id === 'name') {
-      this.config.name = value;
+      newConfig.name = value;
     } else if (target.type === 'checkbox') {
-      this.config[target.id] = target.checked;
+      newConfig[target.id] = target.checked;
     }
+
+    // Update the config property
+    this.config = newConfig;
 
     // Debug logging
     console.log('AC Panel Editor: Configuration changed', this.config);
