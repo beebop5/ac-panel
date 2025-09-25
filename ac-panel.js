@@ -338,15 +338,13 @@ class AcPanel extends HTMLElement {
               </div>
               <div class="ac-temp-controls">
                 <button 
-                  class="ac-temp-btn" 
-                  onclick="this._setTemperature(${this._temperature - 1})"
+                  class="ac-temp-btn temp-down" 
                   ${!this._isOn ? 'disabled' : ''}
                 >
                   −
                 </button>
                 <button 
-                  class="ac-temp-btn" 
-                  onclick="this._setTemperature(${this._temperature + 1})"
+                  class="ac-temp-btn temp-up" 
                   ${!this._isOn ? 'disabled' : ''}
                 >
                   +
@@ -361,8 +359,8 @@ class AcPanel extends HTMLElement {
               <div class="ac-options">
                 ${modes.map(mode => html`
                   <div 
-                    class="ac-option ${this._currentMode === mode ? 'active' : ''}"
-                    onclick="this._setMode('${mode}')"
+                    class="ac-option mode-option ${this._currentMode === mode ? 'active' : ''}"
+                    data-mode="${mode}"
                   >
                     ${mode.replace('_', ' ').toUpperCase()}
                   </div>
@@ -377,8 +375,8 @@ class AcPanel extends HTMLElement {
               <div class="ac-options">
                 ${fanSpeeds.map(speed => html`
                   <div 
-                    class="ac-option ${this._currentFanSpeed === speed ? 'active' : ''}"
-                    onclick="this._setFanSpeed('${speed}')"
+                    class="ac-option fan-option ${this._currentFanSpeed === speed ? 'active' : ''}"
+                    data-speed="${speed}"
                   >
                     ${speed.toUpperCase()}
                   </div>
@@ -393,8 +391,8 @@ class AcPanel extends HTMLElement {
               <div class="ac-options">
                 ${swingModes.map(swing => html`
                   <div 
-                    class="ac-option ${this._currentSwing === swing ? 'active' : ''}"
-                    onclick="this._setSwing('${swing}')"
+                    class="ac-option swing-option ${this._currentSwing === swing ? 'active' : ''}"
+                    data-swing="${swing}"
                   >
                     ${swing.toUpperCase()}
                   </div>
@@ -404,14 +402,60 @@ class AcPanel extends HTMLElement {
           ` : ''}
 
           <button 
-            class="ac-power-btn ${this._isOn ? '' : 'off'}"
-            onclick="this._togglePower()"
+            class="ac-power-btn power-btn ${this._isOn ? '' : 'off'}"
           >
             ${this._isOn ? 'TURN OFF' : 'TURN ON'}
           </button>
         </div>
       </div>
     `;
+
+    this._setupEventListeners();
+  }
+
+  _setupEventListeners() {
+    // Temperature controls
+    const tempDown = this.querySelector('.temp-down');
+    const tempUp = this.querySelector('.temp-up');
+    if (tempDown) {
+      tempDown.addEventListener('click', () => this._setTemperature(this._temperature - 1));
+    }
+    if (tempUp) {
+      tempUp.addEventListener('click', () => this._setTemperature(this._temperature + 1));
+    }
+
+    // Mode controls
+    const modeOptions = this.querySelectorAll('.mode-option');
+    modeOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        const mode = option.dataset.mode;
+        this._setMode(mode);
+      });
+    });
+
+    // Fan controls
+    const fanOptions = this.querySelectorAll('.fan-option');
+    fanOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        const speed = option.dataset.speed;
+        this._setFanSpeed(speed);
+      });
+    });
+
+    // Swing controls
+    const swingOptions = this.querySelectorAll('.swing-option');
+    swingOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        const swing = option.dataset.swing;
+        this._setSwing(swing);
+      });
+    });
+
+    // Power button
+    const powerBtn = this.querySelector('.power-btn');
+    if (powerBtn) {
+      powerBtn.addEventListener('click', () => this._togglePower());
+    }
   }
 }
 
