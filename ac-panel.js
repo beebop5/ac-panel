@@ -566,6 +566,11 @@ class AcPanelCardEditor extends HTMLElement {
 
   setConfig(config) {
     this.config = config || {};
+    // Use setTimeout to ensure DOM is ready
+    setTimeout(() => {
+      this._render();
+      this._setupEventListeners();
+    }, 0);
   }
 
   get _entity() {
@@ -916,11 +921,7 @@ class AcPanelCardEditor extends HTMLElement {
     } else if (target.id === 'name') {
       this.config.name = value;
     } else if (target.type === 'checkbox') {
-      if (target.checked) {
-        this.config[target.id] = true;
-      } else {
-        delete this.config[target.id];
-      }
+      this.config[target.id] = target.checked;
     }
 
     const event = new CustomEvent('config-changed', {
