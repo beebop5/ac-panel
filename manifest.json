@@ -1,0 +1,9 @@
+{
+  "domain": "ac_panel",
+  "name": "Air Conditioner Panel",
+  "documentation": "https://github.com/yourusername/ac_panel",
+  "dependencies": [],
+  "codeowners": ["@yourusername"],
+  "requirements": [],
+  "version": "1.0.0"
+}
