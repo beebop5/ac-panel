@@ -164,8 +164,8 @@ class AcPanel extends HTMLElement {
       .ac-controls {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto auto auto;
-        gap: 6px;
+        grid-template-rows: auto 1fr 1fr auto;
+        gap: 8px;
         flex: 1;
         overflow: hidden;
       }
@@ -177,7 +177,7 @@ class AcPanel extends HTMLElement {
       }
 
       .ac-temp-display {
-        font-size: 32px;
+        font-size: 48px;
         font-weight: 300;
         color: var(--ac-primary-color);
         margin: 0;
@@ -185,7 +185,7 @@ class AcPanel extends HTMLElement {
       }
 
       .ac-temp-unit {
-        font-size: 14px;
+        font-size: 18px;
         color: var(--ac-text-color);
         opacity: 0.7;
       }
@@ -194,8 +194,8 @@ class AcPanel extends HTMLElement {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin: 2px 0;
-        font-size: 10px;
+        margin: 4px 0;
+        font-size: 12px;
         color: var(--ac-text-color);
         opacity: 0.8;
       }
@@ -219,18 +219,18 @@ class AcPanel extends HTMLElement {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 8px;
-        margin-top: 4px;
+        gap: 12px;
+        margin-top: 8px;
       }
 
       .ac-temp-btn {
-        width: 28px;
-        height: 28px;
-        border: 2px solid var(--ac-primary-color);
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--ac-primary-color);
         background: transparent;
         border-radius: 50%;
         color: var(--ac-primary-color);
-        font-size: 14px;
+        font-size: 18px;
         cursor: pointer;
         transition: all 0.2s ease;
         display: flex;
@@ -255,9 +255,9 @@ class AcPanel extends HTMLElement {
       }
 
       .ac-section-title {
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 500;
-        margin: 0 0 4px 0;
+        margin: 0 0 6px 0;
         color: var(--ac-text-color);
         opacity: 0.8;
       }
@@ -265,18 +265,22 @@ class AcPanel extends HTMLElement {
       .ac-options {
         display: flex;
         flex-wrap: wrap;
-        gap: 4px;
+        gap: 6px;
       }
 
       .ac-option {
-        padding: 4px 8px;
-        border: 1px solid var(--ac-border-color);
+        padding: 8px 12px;
+        border: 2px solid var(--ac-border-color);
         background: white;
-        border-radius: 12px;
+        border-radius: 16px;
         cursor: pointer;
         transition: all 0.2s ease;
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 500;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .ac-option:hover {
@@ -292,17 +296,18 @@ class AcPanel extends HTMLElement {
 
       .ac-power-btn {
         width: 100%;
-        padding: 8px;
+        padding: 12px;
         background: var(--ac-primary-color);
         color: white;
         border: none;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
         margin-top: 8px;
         grid-column: 1 / -1;
+        min-height: 48px;
       }
 
       .ac-power-btn:hover {
@@ -322,30 +327,34 @@ class AcPanel extends HTMLElement {
       }
 
       .ac-ceiling-fan-title {
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 500;
         color: var(--ac-text-color);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         text-align: center;
       }
 
       .ac-fan-buttons {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 4px;
+        gap: 6px;
       }
 
       .ac-fan-btn {
-        padding: 4px 2px;
-        border: 1px solid var(--ac-border-color);
+        padding: 8px 4px;
+        border: 2px solid var(--ac-border-color);
         background: var(--ac-background-color);
-        border-radius: 4px;
+        border-radius: 6px;
         color: var(--ac-text-color);
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
         text-align: center;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .ac-fan-btn:hover {
