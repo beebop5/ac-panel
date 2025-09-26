@@ -39,14 +39,68 @@ class AcPanel extends HTMLElement {
         --ac-background-color: #fff;
       }
 
+      /* Theme: Dark */
+      :host([theme="dark"]) {
+        --ac-primary-color: #4fc3f7;
+        --ac-secondary-color: #424242;
+        --ac-text-color: #ffffff;
+        --ac-border-color: #555;
+        --ac-background-color: #303030;
+      }
+
+      /* Theme: Light */
+      :host([theme="light"]) {
+        --ac-primary-color: #2196f3;
+        --ac-secondary-color: #f8f9fa;
+        --ac-text-color: #212529;
+        --ac-border-color: #e9ecef;
+        --ac-background-color: #ffffff;
+      }
+
+      /* Theme: Blue */
+      :host([theme="blue"]) {
+        --ac-primary-color: #1976d2;
+        --ac-secondary-color: #e3f2fd;
+        --ac-text-color: #1565c0;
+        --ac-border-color: #bbdefb;
+        --ac-background-color: #f3f8ff;
+      }
+
+      /* Theme: Green */
+      :host([theme="green"]) {
+        --ac-primary-color: #388e3c;
+        --ac-secondary-color: #e8f5e8;
+        --ac-text-color: #2e7d32;
+        --ac-border-color: #c8e6c9;
+        --ac-background-color: #f1f8e9;
+      }
+
+      /* Theme: Red */
+      :host([theme="red"]) {
+        --ac-primary-color: #d32f2f;
+        --ac-secondary-color: #ffebee;
+        --ac-text-color: #c62828;
+        --ac-border-color: #ffcdd2;
+        --ac-background-color: #fff5f5;
+      }
+
+      /* Theme: Purple */
+      :host([theme="purple"]) {
+        --ac-primary-color: #7b1fa2;
+        --ac-secondary-color: #f3e5f5;
+        --ac-text-color: #6a1b9a;
+        --ac-border-color: #e1bee7;
+        --ac-background-color: #faf5ff;
+      }
+
       .ac-card {
         background: var(--ac-background-color);
-        border-radius: 12px;
+        border-radius: 8px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px;
+        padding: 16px;
         font-family: 'Roboto', sans-serif;
         color: var(--ac-text-color);
-        max-width: 400px;
+        max-width: 350px;
         margin: 0 auto;
       }
 
@@ -54,8 +108,8 @@ class AcPanel extends HTMLElement {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
         border-bottom: 1px solid var(--ac-border-color);
       }
 
@@ -92,16 +146,16 @@ class AcPanel extends HTMLElement {
 
       .ac-controls {
         display: grid;
-        gap: 20px;
+        gap: 16px;
       }
 
       .ac-temperature {
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
       }
 
       .ac-temp-display {
-        font-size: 48px;
+        font-size: 42px;
         font-weight: 300;
         color: var(--ac-primary-color);
         margin: 0;
@@ -118,18 +172,18 @@ class AcPanel extends HTMLElement {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 15px;
-        margin-top: 15px;
+        gap: 12px;
+        margin-top: 12px;
       }
 
       .ac-temp-btn {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border: 2px solid var(--ac-primary-color);
         background: transparent;
         border-radius: 50%;
         color: var(--ac-primary-color);
-        font-size: 20px;
+        font-size: 16px;
         cursor: pointer;
         transition: all 0.2s ease;
         display: flex;
@@ -168,13 +222,13 @@ class AcPanel extends HTMLElement {
       }
 
       .ac-option {
-        padding: 8px 16px;
+        padding: 6px 12px;
         border: 1px solid var(--ac-border-color);
         background: white;
-        border-radius: 20px;
+        border-radius: 16px;
         cursor: pointer;
         transition: all 0.2s ease;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
       }
 
@@ -332,6 +386,17 @@ class AcPanel extends HTMLElement {
     const modes = this.modes || defaultModes;
     const fanSpeeds = this.fan_speeds || defaultFanSpeeds;
     const swingModes = this.swing_modes || defaultSwingModes;
+    
+    // Check if fan and swing entities are available
+    const hasFanEntity = this.fan_entity && this.hass && this.hass.states[this.fan_entity];
+    const hasSwingEntity = this.swing_entity && this.hass && this.hass.states[this.swing_entity];
+
+    // Apply theme to host element
+    if (this.theme) {
+      this.setAttribute('theme', this.theme);
+    } else {
+      this.removeAttribute('theme');
+    }
 
     this.innerHTML = html`
       <style>${AcPanel.styles}</style>
@@ -632,6 +697,10 @@ class AcPanelCardEditor extends HTMLElement {
     return this.config?.hide_swing || false;
   }
 
+  get _theme() {
+    return this.config?.theme || '';
+  }
+
   static get styles() {
     return css`
       .card-config {
@@ -859,6 +928,18 @@ class AcPanelCardEditor extends HTMLElement {
 
           <div class="entity-section">
             <h4>⚙️ Display Options</h4>
+            <div class="config-section">
+              <label for="theme">Theme</label>
+              <select id="theme">
+                <option value="" ${this._theme === '' ? 'selected' : ''}>Default</option>
+                <option value="dark" ${this._theme === 'dark' ? 'selected' : ''}>Dark</option>
+                <option value="light" ${this._theme === 'light' ? 'selected' : ''}>Light</option>
+                <option value="blue" ${this._theme === 'blue' ? 'selected' : ''}>Blue</option>
+                <option value="green" ${this._theme === 'green' ? 'selected' : ''}>Green</option>
+                <option value="red" ${this._theme === 'red' ? 'selected' : ''}>Red</option>
+                <option value="purple" ${this._theme === 'purple' ? 'selected' : ''}>Purple</option>
+              </select>
+            </div>
             <div class="config-section checkbox">
               <input
                 type="checkbox"
@@ -921,6 +1002,7 @@ class AcPanelCardEditor extends HTMLElement {
     const fanEntitySelect = this.querySelector('#fan_entity');
     const swingEntitySelect = this.querySelector('#swing_entity');
     const nameInput = this.querySelector('#name');
+    const themeSelect = this.querySelector('#theme');
     const checkboxes = this.querySelectorAll('input[type="checkbox"]');
 
     if (entitySelect) {
@@ -938,6 +1020,10 @@ class AcPanelCardEditor extends HTMLElement {
     if (nameInput) {
       nameInput.addEventListener('input', (e) => this._valueChanged(e));
       nameInput.setAttribute('data-listener-attached', 'true');
+    }
+    if (themeSelect) {
+      themeSelect.addEventListener('change', (e) => this._valueChanged(e));
+      themeSelect.setAttribute('data-listener-attached', 'true');
     }
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', (e) => this._valueChanged(e));
@@ -960,6 +1046,8 @@ class AcPanelCardEditor extends HTMLElement {
       newConfig.swing_entity = value;
     } else if (target.id === 'name') {
       newConfig.name = value;
+    } else if (target.id === 'theme') {
+      newConfig.theme = value;
     } else if (target.type === 'checkbox') {
       newConfig[target.id] = target.checked;
     }
