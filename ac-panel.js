@@ -16,6 +16,8 @@ class AcPanel extends HTMLElement {
   constructor() {
     super();
     this._temperature = 22;
+    this._currentTemp = 22;
+    this._outsideTemp = null;
     this._currentMode = 'cool';
     this._currentFanSpeed = 'auto';
     this._currentSwing = 'off';
@@ -26,6 +28,16 @@ class AcPanel extends HTMLElement {
     this.hide_swing = false;
     this.fan_entity = null;
     this.swing_entity = null;
+    this.outside_temp_entity = null;
+    this.ceiling_fan_scripts = {
+      off: '',
+      speed1: '',
+      speed2: '',
+      speed3: '',
+      speed4: '',
+      speed5: '',
+      speed6: ''
+    };
   }
 
   static get styles() {
@@ -168,6 +180,31 @@ class AcPanel extends HTMLElement {
         opacity: 0.7;
       }
 
+      .ac-temp-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 8px 0;
+        font-size: 12px;
+        color: var(--ac-text-color);
+        opacity: 0.8;
+      }
+
+      .ac-temp-current, .ac-temp-outside {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .ac-temp-label {
+        font-weight: 500;
+      }
+
+      .ac-temp-value {
+        font-weight: 600;
+        color: var(--ac-primary-color);
+      }
+
       .ac-temp-controls {
         display: flex;
         justify-content: center;
@@ -266,6 +303,55 @@ class AcPanel extends HTMLElement {
         background: #666;
       }
 
+      .ac-ceiling-fan {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--ac-border-color);
+      }
+
+      .ac-ceiling-fan-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--ac-text-color);
+        margin-bottom: 12px;
+        text-align: center;
+      }
+
+      .ac-fan-buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+
+      .ac-fan-btn {
+        padding: 8px 4px;
+        border: 2px solid var(--ac-border-color);
+        background: var(--ac-background-color);
+        border-radius: 6px;
+        color: var(--ac-text-color);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+      }
+
+      .ac-fan-btn:hover {
+        border-color: var(--ac-primary-color);
+        color: var(--ac-primary-color);
+      }
+
+      .ac-fan-btn.active {
+        background: var(--ac-primary-color);
+        color: white;
+        border-color: var(--ac-primary-color);
+      }
+
+      .ac-fan-btn.off {
+        grid-column: 1 / -1;
+        margin-bottom: 4px;
+      }
+
       .ac-power-btn.off:hover {
         background: #555;
       }
@@ -300,7 +386,16 @@ class AcPanel extends HTMLElement {
 
     this._isOn = state.state === 'on';
     this._temperature = state.attributes.temperature || 22;
+    this._currentTemp = state.attributes.current_temperature || state.attributes.temperature || 22;
     this._currentMode = state.attributes.hvac_mode || 'cool';
+    
+    // Check for outside temperature entity
+    if (this.outside_temp_entity && this.hass.states[this.outside_temp_entity]) {
+      const outsideState = this.hass.states[this.outside_temp_entity];
+      this._outsideTemp = parseFloat(outsideState.state) || null;
+    } else {
+      this._outsideTemp = null;
+    }
     
     // Check for separate fan entity (select)
     if (this.fan_entity && this.hass.states[this.fan_entity]) {
@@ -378,6 +473,25 @@ class AcPanel extends HTMLElement {
     }
   }
 
+  _setCeilingFanSpeed(speed) {
+    if (!this.hass) {
+      console.error('AC Panel: hass object is not available');
+      return;
+    }
+
+    const scriptKey = speed === 'off' ? 'off' : `speed${speed}`;
+    const script = this.ceiling_fan_scripts[scriptKey];
+    
+    if (script) {
+      // Execute the configured script
+      this.hass.callService('script', 'turn_on', {
+        entity_id: script
+      });
+    } else {
+      console.warn(`AC Panel: No script configured for ceiling fan speed ${speed}`);
+    }
+  }
+
   _render() {
     const defaultModes = ['cool', 'heat', 'fan_only', 'auto', 'dry'];
     const defaultFanSpeeds = ['auto', 'low', 'medium', 'high'];
@@ -390,6 +504,16 @@ class AcPanel extends HTMLElement {
     // Check if fan and swing entities are available
     const hasFanEntity = this.fan_entity && this.hass && this.hass.states[this.fan_entity];
     const hasSwingEntity = this.swing_entity && this.hass && this.hass.states[this.swing_entity];
+    
+    // Parse ceiling fan scripts if provided
+    if (this.ceiling_fan_scripts && typeof this.ceiling_fan_scripts === 'string') {
+      try {
+        this.ceiling_fan_scripts = JSON.parse(this.ceiling_fan_scripts);
+      } catch (e) {
+        console.warn('AC Panel: Failed to parse ceiling_fan_scripts', e);
+        this.ceiling_fan_scripts = {};
+      }
+    }
 
     // Apply theme to host element
     if (this.theme) {
@@ -414,6 +538,18 @@ class AcPanel extends HTMLElement {
             <div class="ac-temperature">
               <div class="ac-temp-display">
                 ${this._temperature}°<span class="ac-temp-unit">C</span>
+              </div>
+              <div class="ac-temp-info">
+                <div class="ac-temp-current">
+                  <span class="ac-temp-label">Current:</span>
+                  <span class="ac-temp-value">${this._currentTemp}°C</span>
+                </div>
+                ${this._outsideTemp !== null ? html`
+                  <div class="ac-temp-outside">
+                    <span class="ac-temp-label">Outside:</span>
+                    <span class="ac-temp-value">${this._outsideTemp}°C</span>
+                  </div>
+                ` : ''}
               </div>
               <div class="ac-temp-controls">
                 <button 
@@ -480,6 +616,19 @@ class AcPanel extends HTMLElement {
             </div>
           ` : ''}
 
+          <div class="ac-ceiling-fan">
+            <div class="ac-ceiling-fan-title">Ceiling Fan</div>
+            <div class="ac-fan-buttons">
+              <button class="ac-fan-btn off" data-fan-speed="off">OFF</button>
+              <button class="ac-fan-btn" data-fan-speed="1">1</button>
+              <button class="ac-fan-btn" data-fan-speed="2">2</button>
+              <button class="ac-fan-btn" data-fan-speed="3">3</button>
+              <button class="ac-fan-btn" data-fan-speed="4">4</button>
+              <button class="ac-fan-btn" data-fan-speed="5">5</button>
+              <button class="ac-fan-btn" data-fan-speed="6">6</button>
+            </div>
+          </div>
+
           <button 
             class="ac-power-btn power-btn ${this._isOn ? '' : 'off'}"
           >
@@ -530,6 +679,15 @@ class AcPanel extends HTMLElement {
       });
     });
 
+    // Ceiling fan buttons
+    const fanBtns = this.querySelectorAll('.ac-fan-btn');
+    fanBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const speed = e.target.getAttribute('data-fan-speed');
+        this._setCeilingFanSpeed(speed);
+      });
+    });
+
     // Power button
     const powerBtn = this.querySelector('.power-btn');
     if (powerBtn) {
@@ -565,7 +723,19 @@ class AcPanelCard extends HTMLElement {
   }
 
   getCardSize() {
-    return 3;
+    return 4;
+  }
+
+  static getConfigElement() {
+    return document.createElement('ac-panel-card-editor');
+  }
+
+  static getStubConfig() {
+    return {
+      type: 'custom:ac-panel-card',
+      entity: '',
+      name: 'Air Conditioner'
+    };
   }
 
   connectedCallback() {
@@ -622,6 +792,7 @@ class AcPanelCard extends HTMLElement {
           entity="${this.config.entity}"
           fan_entity="${this.config.fan_entity || ''}"
           swing_entity="${this.config.swing_entity || ''}"
+          outside_temp_entity="${this.config.outside_temp_entity || ''}"
           name="${this.config.name || ''}"
           theme="${this.config.theme || ''}"
           hide_temperature="${this.config.hide_temperature || false}"
@@ -631,6 +802,7 @@ class AcPanelCard extends HTMLElement {
           modes="${JSON.stringify(this.config.modes || [])}"
           fan_speeds="${JSON.stringify(this.config.fan_speeds || [])}"
           swing_modes="${JSON.stringify(this.config.swing_modes || [])}"
+          ceiling_fan_scripts="${JSON.stringify(this.config.ceiling_fan_scripts || {})}"
         ></ac-panel>
       </ha-card>
     `;
@@ -699,6 +871,38 @@ class AcPanelCardEditor extends HTMLElement {
 
   get _theme() {
     return this.config?.theme || '';
+  }
+
+  get _outside_temp_entity() {
+    return this.config?.outside_temp_entity || '';
+  }
+
+  get _fan_script_off() {
+    return this.config?.ceiling_fan_scripts?.off || '';
+  }
+
+  get _fan_script_1() {
+    return this.config?.ceiling_fan_scripts?.speed1 || '';
+  }
+
+  get _fan_script_2() {
+    return this.config?.ceiling_fan_scripts?.speed2 || '';
+  }
+
+  get _fan_script_3() {
+    return this.config?.ceiling_fan_scripts?.speed3 || '';
+  }
+
+  get _fan_script_4() {
+    return this.config?.ceiling_fan_scripts?.speed4 || '';
+  }
+
+  get _fan_script_5() {
+    return this.config?.ceiling_fan_scripts?.speed5 || '';
+  }
+
+  get _fan_script_6() {
+    return this.config?.ceiling_fan_scripts?.speed6 || '';
   }
 
   static get styles() {
@@ -927,6 +1131,20 @@ class AcPanelCardEditor extends HTMLElement {
           </div>
 
           <div class="entity-section">
+            <h4>🌡️ Outside Temperature <span class="optional">(Optional)</span></h4>
+            <select id="outside_temp_entity">
+              <option value="">No outside temperature</option>
+              ${Object.keys(this.hass.states).filter(
+                (entity) => entity.startsWith('sensor.') && 
+                (entity.includes('temperature') || entity.includes('temp') || entity.includes('weather'))
+              ).map((entity) => html`
+                <option value="${entity}" ${this._outside_temp_entity === entity ? 'selected' : ''}>${entity}</option>
+              `)}
+            </select>
+            <div class="optional">Sensor entity for outside temperature display</div>
+          </div>
+
+          <div class="entity-section">
             <h4>⚙️ Display Options</h4>
             <div class="config-section">
               <label for="theme">Theme</label>
@@ -973,6 +1191,74 @@ class AcPanelCardEditor extends HTMLElement {
               <label for="hide_swing">Hide Swing Control</label>
             </div>
           </div>
+
+          <div class="entity-section">
+            <h4>🌪️ Ceiling Fan Scripts</h4>
+            <div class="config-section">
+              <label for="fan_script_off">OFF Script</label>
+              <input
+                id="fan_script_off"
+                type="text"
+                value="${this._fan_script_off || ''}"
+                placeholder="script.ceiling_fan_off"
+              />
+            </div>
+            <div class="config-section">
+              <label for="fan_script_1">Speed 1 Script</label>
+              <input
+                id="fan_script_1"
+                type="text"
+                value="${this._fan_script_1 || ''}"
+                placeholder="script.ceiling_fan_speed_1"
+              />
+            </div>
+            <div class="config-section">
+              <label for="fan_script_2">Speed 2 Script</label>
+              <input
+                id="fan_script_2"
+                type="text"
+                value="${this._fan_script_2 || ''}"
+                placeholder="script.ceiling_fan_speed_2"
+              />
+            </div>
+            <div class="config-section">
+              <label for="fan_script_3">Speed 3 Script</label>
+              <input
+                id="fan_script_3"
+                type="text"
+                value="${this._fan_script_3 || ''}"
+                placeholder="script.ceiling_fan_speed_3"
+              />
+            </div>
+            <div class="config-section">
+              <label for="fan_script_4">Speed 4 Script</label>
+              <input
+                id="fan_script_4"
+                type="text"
+                value="${this._fan_script_4 || ''}"
+                placeholder="script.ceiling_fan_speed_4"
+              />
+            </div>
+            <div class="config-section">
+              <label for="fan_script_5">Speed 5 Script</label>
+              <input
+                id="fan_script_5"
+                type="text"
+                value="${this._fan_script_5 || ''}"
+                placeholder="script.ceiling_fan_speed_5"
+              />
+            </div>
+            <div class="config-section">
+              <label for="fan_script_6">Speed 6 Script</label>
+              <input
+                id="fan_script_6"
+                type="text"
+                value="${this._fan_script_6 || ''}"
+                placeholder="script.ceiling_fan_speed_6"
+              />
+            </div>
+            <div class="optional">Configure scripts to run when ceiling fan buttons are pressed</div>
+          </div>
         </div>
 
         ${this._entity ? html`
@@ -1001,8 +1287,10 @@ class AcPanelCardEditor extends HTMLElement {
     const entitySelect = this.querySelector('#entity');
     const fanEntitySelect = this.querySelector('#fan_entity');
     const swingEntitySelect = this.querySelector('#swing_entity');
+    const outsideTempEntitySelect = this.querySelector('#outside_temp_entity');
     const nameInput = this.querySelector('#name');
     const themeSelect = this.querySelector('#theme');
+    const fanScriptInputs = this.querySelectorAll('input[id^="fan_script_"]');
     const checkboxes = this.querySelectorAll('input[type="checkbox"]');
 
     if (entitySelect) {
@@ -1017,6 +1305,10 @@ class AcPanelCardEditor extends HTMLElement {
       swingEntitySelect.addEventListener('change', (e) => this._valueChanged(e));
       swingEntitySelect.setAttribute('data-listener-attached', 'true');
     }
+    if (outsideTempEntitySelect) {
+      outsideTempEntitySelect.addEventListener('change', (e) => this._valueChanged(e));
+      outsideTempEntitySelect.setAttribute('data-listener-attached', 'true');
+    }
     if (nameInput) {
       nameInput.addEventListener('input', (e) => this._valueChanged(e));
       nameInput.setAttribute('data-listener-attached', 'true');
@@ -1025,6 +1317,10 @@ class AcPanelCardEditor extends HTMLElement {
       themeSelect.addEventListener('change', (e) => this._valueChanged(e));
       themeSelect.setAttribute('data-listener-attached', 'true');
     }
+    fanScriptInputs.forEach(input => {
+      input.addEventListener('input', (e) => this._valueChanged(e));
+      input.setAttribute('data-listener-attached', 'true');
+    });
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', (e) => this._valueChanged(e));
       checkbox.setAttribute('data-listener-attached', 'true');
@@ -1044,10 +1340,23 @@ class AcPanelCardEditor extends HTMLElement {
       newConfig.fan_entity = value;
     } else if (target.id === 'swing_entity') {
       newConfig.swing_entity = value;
+    } else if (target.id === 'outside_temp_entity') {
+      newConfig.outside_temp_entity = value;
     } else if (target.id === 'name') {
       newConfig.name = value;
     } else if (target.id === 'theme') {
       newConfig.theme = value;
+    } else if (target.id.startsWith('fan_script_')) {
+      // Handle fan script inputs
+      if (!newConfig.ceiling_fan_scripts) {
+        newConfig.ceiling_fan_scripts = {};
+      }
+      const scriptKey = target.id.replace('fan_script_', '');
+      if (scriptKey === 'off') {
+        newConfig.ceiling_fan_scripts.off = value;
+      } else {
+        newConfig.ceiling_fan_scripts[`speed${scriptKey}`] = value;
+      }
     } else if (target.type === 'checkbox') {
       newConfig[target.id] = target.checked;
     }
