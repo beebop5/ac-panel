@@ -1,25 +1,54 @@
-# Air Conditioner Panel for Home Assistant
+# Overview
 
-A custom Home Assistant dashboard component that provides an intuitive interface for controlling air conditioners with fan speeds, swing positions, and multiple modes. This component mirrors the functionality of the built-in Thermostat card but is specifically designed for air conditioner control.
+A custom Lovelace card for Home Assistant that provides an intuitive interface for controlling air conditioners. Designed specifically for panel displays with support for climate entities, fan speeds, swing positions, ceiling fans, and theme customization.
 
-## Features
+# Features
 
-- **Temperature Control**: Large, easy-to-read temperature display with +/- buttons
-- **Mode Selection**: Support for Cool, Heat, Fan, Auto, and Dry modes
-- **Fan Speed Control**: Multiple fan speed options (Auto, Low, Medium, High)
-- **Swing Control**: Horizontal, Vertical, and Both swing options
-- **Power Toggle**: Easy on/off control
-- **Responsive Design**: Works on desktop and mobile devices
-- **Customizable**: Hide any control section you don't need
-- **Modern UI**: Clean, card-based interface with smooth animations
+* Control your AC locally via Home Assistant
+* Large temperature display optimized for panel viewing
+* Separate control for AC fan speed and swing (via select entities)
+* Ceiling fan controls with configurable script buttons (OFF, 1-6)
+* Theme support with automatic color adaptation
+* Current, target, and outside temperature display
+* Works with standard climate entities and select entities
+* Compact design perfect for 480x480px panels
+* Visual configuration editor included
 
-## Installation
+# Supported hardware
 
-### Method 1: Manual Installation (Recommended)
+This card is designed for Home Assistant Lovelace dashboards and works with:
 
-1. Download the `ac-panel.js` file from this repository
-2. Place it in your Home Assistant `www` directory (create it if it doesn't exist)
-3. Add the resource to your Lovelace configuration:
+* Any Home Assistant climate entity
+* Select entities for fan speed control
+* Select entities for swing control
+* Sensor entities for outside temperature
+* Script entities for ceiling fan control
+
+Works best with Panasonic AC units controlled via [esphome-panasonic-ac](https://github.com/DomiStyle/esphome-panasonic-ac).
+
+# Requirements
+
+* Home Assistant 2023.1.0 or newer
+* A climate entity (e.g., `climate.living_room_ac`)
+* Optional: Select entities for fan and swing control
+* Optional: Sensor entity for outside temperature
+* Optional: Script entities for ceiling fan control
+
+# Notes
+
+* **This is a frontend Lovelace card, not a Home Assistant integration**
+* **Make sure your climate entity supports the features you want to use**
+* **Select entities should be used for fan speed and swing control when using ESPHome-based AC controllers**
+
+# Software installation
+
+This installation guide assumes some familiarity with Home Assistant and Lovelace.
+
+## Manual Installation
+
+* Download the `ac-panel.js` file from this repository
+* Place it in your Home Assistant `www` directory (create it if it doesn't exist: `/config/www/`)
+* Add the resource to your Lovelace configuration:
 
 ```yaml
 resources:
@@ -27,215 +56,202 @@ resources:
     type: module
 ```
 
-4. Restart Home Assistant
-5. The card will be available in the card picker as "AC Panel Card"
+* Restart Home Assistant or reload Lovelace resources
+* The card will be available in the card picker as "AC Panel Card"
 
-### Method 2: HACS (If Available)
+## HACS Installation
 
-1. Open HACS in your Home Assistant instance
-2. Go to "Explore & Download Repositories"
-3. Search for "ac-panel" or add this repository URL: `https://github.com/beebop5/ac-panel`
-4. Install the plugin
-5. Add the resource to your Lovelace configuration as shown above
+* Open HACS in your Home Assistant instance
+* Click on "Frontend"
+* Click the "+" button
+* Search for "Air Conditioner Panel" or add custom repository: `https://github.com/beebop5/ac-panel`
+* Click "Install"
+* Add the resource configuration as shown above
+* Restart Home Assistant or reload Lovelace resources
 
-## Usage
+## Basic Configuration
 
-### Basic Configuration
-
-Add the card to your dashboard using the card picker or add it manually:
+Add the card to your dashboard using the visual editor or manually:
 
 ```yaml
 type: custom:ac-panel-card
 entity: climate.living_room_ac
 ```
 
-### Advanced Configuration
+## Full Configuration Example
 
 ```yaml
 type: custom:ac-panel-card
 entity: climate.living_room_ac
-fan_entity: fan.living_room_fan  # Optional: separate fan entity
-swing_entity: fan.living_room_swing  # Optional: separate swing entity
-name: "Living Room AC"
+name: Living Room AC
+theme: default
+
+# Optional separate select entities (recommended for ESPHome)
+fan_entity: select.living_room_fan_speed
+swing_entity: select.living_room_swing_mode
+
+# Optional outside temperature sensor
+outside_temp_entity: sensor.outside_temperature
+
+# Hide sections you don't need
 hide_temperature: false
 hide_mode: false
 hide_fan_speed: false
 hide_swing: false
+
+# Customize available modes
 modes:
   - cool
   - heat
   - fan_only
   - auto
   - dry
+
+# Customize available fan speeds (match your select entity options)
 fan_speeds:
   - auto
   - low
   - medium
   - high
+
+# Customize available swing modes (match your select entity options)
 swing_modes:
   - off
   - horizontal
   - vertical
   - both
+
+# Ceiling fan controls (optional)
+ceiling_fan_scripts:
+  off: script.ceiling_fan_off
+  speed1: script.ceiling_fan_1
+  speed2: script.ceiling_fan_2
+  speed3: script.ceiling_fan_3
+  speed4: script.ceiling_fan_4
+  speed5: script.ceiling_fan_5
+  speed6: script.ceiling_fan_6
 ```
 
-### Configuration Options
+## Configuration Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `entity` | string | **Required** | The climate entity ID to control |
-| `fan_entity` | string | `null` | Optional separate fan entity for fan control |
-| `swing_entity` | string | `null` | Optional separate swing entity for swing control |
+| `entity` | string | **Required** | Climate entity ID (e.g., `climate.living_room_ac`) |
 | `name` | string | Entity name | Custom name for the card |
-| `hide_temperature` | boolean | `false` | Hide the temperature control section |
-| `hide_mode` | boolean | `false` | Hide the mode selection section |
-| `hide_fan_speed` | boolean | `false` | Hide the fan speed control section |
-| `hide_swing` | boolean | `false` | Hide the swing control section |
-| `modes` | array | `['cool', 'heat', 'fan_only', 'auto', 'dry']` | Available HVAC modes |
-| `fan_speeds` | array | `['auto', 'low', 'medium', 'high']` | Available fan speeds |
-| `swing_modes` | array | `['off', 'horizontal', 'vertical', 'both']` | Available swing modes |
+| `theme` | string | `default` | Theme name for color scheme |
+| `fan_entity` | string | - | Select entity for fan speed control |
+| `swing_entity` | string | - | Select entity for swing control |
+| `outside_temp_entity` | string | - | Sensor entity for outside temperature |
+| `hide_temperature` | boolean | `false` | Hide temperature controls |
+| `hide_mode` | boolean | `false` | Hide mode selection |
+| `hide_fan_speed` | boolean | `false` | Hide fan speed controls |
+| `hide_swing` | boolean | `false` | Hide swing controls |
+| `modes` | array | See example | Available HVAC modes |
+| `fan_speeds` | array | See example | Available fan speeds |
+| `swing_modes` | array | See example | Available swing modes |
+| `ceiling_fan_scripts` | object | - | Script entities for ceiling fan buttons |
 
-## Supported Entities
+## Setting up with ESPHome Panasonic AC
 
-This card works with:
+If you're using [esphome-panasonic-ac](https://github.com/DomiStyle/esphome-panasonic-ac), configure select entities for fan and swing:
 
-**Climate Entities (required):**
-- `climate.turn_on` / `climate.turn_off`
-- `climate.set_temperature`
-- `climate.set_hvac_mode`
-- `climate.set_fan_mode` (if no separate fan entity)
-- `climate.set_swing_mode` (if no separate swing entity)
+```yaml
+# ESPHome configuration
+select:
+  - platform: template
+    name: "Living Room Fan Speed"
+    id: fan_speed_select
+    options:
+      - auto
+      - low
+      - medium
+      - high
+    optimistic: true
 
-**Optional Select Entities:**
-- `select.select_option` - for separate fan speed control
-- `select.select_option` - for separate swing control
+  - platform: template
+    name: "Living Room Swing Mode"
+    id: swing_mode_select
+    options:
+      - off
+      - horizontal
+      - vertical
+      - both
+    optimistic: true
+```
 
-**Configuration Flexibility:**
-- **Single Climate Entity**: Use the climate entity for all controls
-- **Separate Fan Select**: Use a dedicated select entity for fan speed control
-- **Separate Swing Select**: Use a dedicated select entity for swing control
-- **Mixed Configuration**: Combine climate entity with separate select entities
-
-## Customization
-
-### CSS Variables
-
-You can customize the appearance using CSS variables:
+Then reference these in your card:
 
 ```yaml
 type: custom:ac-panel-card
 entity: climate.living_room_ac
-card_mod:
-  style: |
-    ha-card {
-      --ac-primary-color: #ff6b35;
-      --ac-secondary-color: #f8f9fa;
-      --ac-text-color: #2c3e50;
-      --ac-border-color: #e9ecef;
-      --ac-background-color: #ffffff;
-    }
+fan_entity: select.living_room_fan_speed
+swing_entity: select.living_room_swing_mode
 ```
 
-### Available CSS Variables
+## Theme Support
 
-- `--ac-primary-color`: Primary color for buttons and active states
-- `--ac-secondary-color`: Background color for control sections
-- `--ac-text-color`: Main text color
-- `--ac-border-color`: Border color for controls
-- `--ac-background-color`: Card background color
+Available themes:
+* `default` - Blue theme
+* `green` - Green theme
+* `orange` - Orange theme
+* `purple` - Purple theme
 
-## Examples
+Themes automatically adjust:
+* Primary color
+* Secondary color
+* Text color
+* Border color
+* Background color
 
-### Minimal Configuration
+## Ceiling Fan Controls
+
+Configure up to 7 ceiling fan buttons (OFF + 6 speed levels):
+
 ```yaml
-type: custom:ac-panel-card
-entity: climate.bedroom_ac
+ceiling_fan_scripts:
+  off: script.ceiling_fan_off
+  speed1: script.ceiling_fan_low
+  speed2: script.ceiling_fan_medium_low
+  speed3: script.ceiling_fan_medium
+  speed4: script.ceiling_fan_medium_high
+  speed5: script.ceiling_fan_high
+  speed6: script.ceiling_fan_max
 ```
 
-### Temperature Only
+Create corresponding scripts in Home Assistant:
+
 ```yaml
-type: custom:ac-panel-card
-entity: climate.living_room_ac
-hide_mode: true
-hide_fan_speed: true
-hide_swing: true
+script:
+  ceiling_fan_off:
+    sequence:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.ceiling_fan
+  
+  ceiling_fan_low:
+    sequence:
+      - service: fan.set_percentage
+        target:
+          entity_id: fan.ceiling_fan
+        data:
+          percentage: 16
 ```
 
-### Custom Modes
-```yaml
-type: custom:ac-panel-card
-entity: climate.office_ac
-modes:
-  - cool
-  - fan_only
-  - auto
-fan_speeds:
-  - auto
-  - low
-  - high
-```
+# About
 
-## Troubleshooting
+Custom Lovelace card for Home Assistant that provides intuitive air conditioner control optimized for panel displays.
 
-### Card Not Appearing
-- Make sure the component is properly installed
-- Check that the entity ID is correct
-- Verify the entity is a climate entity
-- Restart Home Assistant after installation
+### Resources
 
-### Controls Not Working
-- Check that the climate entity supports the required services
-- Verify the entity is not in an unavailable state
-- Check the Home Assistant logs for any error messages
+* [Installation Guide](#software-installation)
+* [Configuration](#configuration-options)
+* [GitHub Repository](https://github.com/beebop5/ac-panel)
+* [Report Issues](https://github.com/beebop5/ac-panel/issues)
 
-### Styling Issues
-- Clear your browser cache
-- Check for conflicting CSS rules
-- Verify the CSS variables are properly formatted
+### License
 
-## Development
+MIT License
 
-### Building from Source
+### Languages
 
-1. Clone the repository:
-```bash
-git clone https://github.com/beebop5/ac-panel.git
-cd ac_panel
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Build the component:
-```bash
-npm run build
-```
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-- [GitHub Issues](https://github.com/beebop5/ac-panel/issues)
-- [Home Assistant Community](https://community.home-assistant.io/)
-- [Discord](https://discord.gg/c5DvZ4e)
-
-## Changelog
-
-### v1.0.0
-- Initial release
-- Basic AC control functionality
-- Temperature, mode, fan speed, and swing controls
-- Responsive design
-- Customizable configuration options
+* JavaScript 100%
